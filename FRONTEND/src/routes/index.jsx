@@ -1,0 +1,148 @@
+import { lazy, Suspense } from "react";
+import { Route } from "react-router-dom";
+import HomeTemplate from "../pages/HomeTemplate/index";
+import ReviewerTemplate from "../pages/ReviewerTemplate/index";
+
+const routes = [
+  {
+    path: "/",
+    element: HomeTemplate,
+    nested: [
+      {
+        path: "",
+        element: lazy(() => import("../pages/HomeTemplate/Home/index")),
+      },
+      {
+        path: "review-text",
+        element: lazy(() => import("../pages/HomeTemplate/ReviewText/index")),
+      },
+      {
+        path: "record-speech",
+        element: lazy(() => import("../pages/HomeTemplate/RecordSpeech/index")),
+      },
+      {
+        path: "review-recording",
+        element: lazy(
+          () => import("../pages/HomeTemplate/ReviewRecording/index"),
+        ),
+      },
+      {
+        path: "submit-task",
+        element: lazy(() => import("../pages/HomeTemplate/SubmitTask/index")),
+      },
+      {
+        path: "contribute",
+        element: lazy(
+          () => import("../pages/HomeTemplate/ContributeText/index"),
+        ),
+      },
+      {
+        path: "recording-history",
+        element: lazy(
+          () => import("../pages/HomeTemplate/History/RecordingHistory/index"),
+        ),
+      },
+      {
+        path: "contribution-history",
+        element: lazy(
+          () => import("../pages/HomeTemplate/History/ContributionHistory/index"),
+        ),
+      },
+      {
+        path: "profile",
+        element: lazy(() => import("../pages/HomeTemplate/Profile/index")),
+      },
+    ],
+  },
+  {
+    path: "/reviewer",
+    element: ReviewerTemplate,
+    nested: [
+      {
+        path: "",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/ReviewerDashboard/index"),
+        ),
+      },
+      {
+        path: "task",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/ReviewerTask/index"),
+        ),
+      },
+      // Kiểm duyệt
+      {
+        path: "recording",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/Reviewer/ReviewerRecording/index"),
+        ),
+      },
+      {
+        path: "contribution",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/Reviewer/ReviewerContribution/index"),
+        ),
+      },
+      // Lịch sử kiểm duyệt
+      {
+        path: "history-recording",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/ReviewerHistory/ReviewerHistoryRecording/index"),
+        ),
+      },
+      {
+        path: "history-contribution",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/ReviewerHistory/ReviewerHistoryContribution/index"),
+        ),
+      },
+    ],
+  },
+];
+
+export const renderRoutes = () => {
+  return routes.map((route, idx) => {
+    const Component = route.element;
+
+    if (route.nested) {
+      return (
+        <Route key={idx} path={route.path} element={<Component />}>
+          {route.nested.map((item) => {
+            const NestedComponent = item.element;
+            return (
+              <Route
+                key={item.path}
+                path={item.path}
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="p-6 text-slate-400">
+                        Loading screen...
+                      </div>
+                    }
+                  >
+                    <NestedComponent {...item.props} />
+                  </Suspense>
+                }
+              />
+            );
+          })}
+        </Route>
+      );
+    }
+
+    return (
+      <Route
+        key={idx}
+        path={route.path}
+        element={
+          <Suspense
+            fallback={<div className="p-6 text-slate-400">Loading...</div>}
+          >
+            <Component />
+          </Suspense>
+        }
+      />
+    );
+  });
+};
