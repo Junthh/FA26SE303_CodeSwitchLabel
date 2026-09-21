@@ -59,7 +59,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
       <div className="space-y-5 flex-1 text-left flex flex-col">
         {/* Logo - luôn 1 màu cố định, không đổi theo role */}
         <div className="flex items-center justify-between">
-          <Logo variant="light" size={40} />
+          <Logo variant={config.logoVariant ?? 'light'} size={40} />
           <button
             onClick={onClose}
             className={`lg:hidden p-1.5 rounded-lg ${idleCls}`}

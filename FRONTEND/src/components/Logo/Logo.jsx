@@ -14,7 +14,7 @@ import React from 'react';
  *   className class bọc ngoài (để căn chỉnh vị trí)
  */
 
-const LOGO_ACCENT = '#FF4B2E';
+const LOGO_ACCENT = '#1DB954';
 const INK = '#20233A'; // màu chữ khi đặt trên nền sáng
 
 export default function Logo({
@@ -29,7 +29,7 @@ export default function Logo({
   const contrast = variant === 'light' ? '#FFFFFF' : INK;
 
   return (
-    <div className={`flex items-center gap-0.5 ${className}`}>
+    <div className={`flex items-center gap-1.5 ${className}`}>
       <svg
         width={size}
         height={size}

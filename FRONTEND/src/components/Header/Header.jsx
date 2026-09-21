@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Moon, Bell, ChevronDown, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { SPEAKER_ACCENT as ACCENT } from '../../constants/theme';
+import {
+  SPEAKER_ACCENT as ACCENT,
+  SURFACE_HERO,
+  TEXT_HEADING, TEXT_BODY,
+  TEXT_ON_DARK_PRIMARY,
+  BORDER_LIGHT,
+} from '../../constants/theme';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -9,7 +15,6 @@ export default function Header() {
   const [nameHover, setNameHover] = useState(false);
   const menuRef = useRef(null);
 
-  // Đóng menu khi bấm ra ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -20,62 +25,77 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // TODO: nối logic đăng xuất thật (xoá token, gọi API...) trước khi điều hướng
   const handleLogout = () => {
     setMenuOpen(false);
     navigate('/login');
   };
 
   return (
-    <header className="w-full flex justify-end items-center gap-3 py-3.5 px-6 lg:px-8 bg-white border-b border-[#E5E2D8] shrink-0 z-20">
-      {/* Nút đổi giao diện */}
-      {/* <button className="w-9 h-9 rounded-lg border border-[#E5E2D8] flex items-center justify-center text-[#6E7078] hover:border-[#2B2C31] hover:text-[#2B2C31] transition-colors cursor-pointer">
-        <Moon className="w-4 h-4" />
-      </button> */}
-
+    <header
+      className="w-full flex justify-end items-center gap-3 py-3.5 px-6 lg:px-8 shrink-0 z-20"
+      style={{ background: '#FFFFFF', borderBottom: `1px solid ${BORDER_LIGHT}` }}
+    >
       {/* Nút thông báo */}
       <div className="relative">
-        <button className="w-9 h-9 rounded-lg border border-[#E5E2D8] flex items-center justify-center text-[#6E7078] hover:border-[#2B2C31] hover:text-[#2B2C31] transition-colors cursor-pointer">
+        <button
+          className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+          style={{ border: `1px solid ${BORDER_LIGHT}`, color: TEXT_BODY }}
+        >
           <Bell className="w-4 h-4" />
         </button>
         <span
           className="absolute top-1.5 right-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white"
           style={{ background: ACCENT }}
-        ></span>
+        />
       </div>
 
-      {/* Thông tin tài khoản Speaker - bấm để mở menu Hồ sơ / Đăng xuất */}
+      {/* Thông tin tài khoản */}
       <div className="relative" ref={menuRef}>
         <button
           onClick={() => setMenuOpen((v) => !v)}
           onMouseEnter={() => setNameHover(true)}
           onMouseLeave={() => setNameHover(false)}
-          className="flex items-center gap-2.5 pl-3 border-l border-[#E5E2D8] cursor-pointer group"
+          className="flex items-center gap-2.5 pl-3 cursor-pointer group"
+          style={{ borderLeft: `1px solid ${BORDER_LIGHT}` }}
         >
-          <div className="w-9 h-9 rounded-lg bg-[#16171C] text-white font-bold flex items-center justify-center text-xs">
+          <div
+            className="w-9 h-9 rounded-lg font-bold flex items-center justify-center text-xs"
+            style={{ background: SURFACE_HERO, color: TEXT_ON_DARK_PRIMARY }}
+          >
             ML
           </div>
           <div className="text-left leading-tight">
             <p
-              className="text-[13px] font-bold text-[#2B2C31] transition-colors"
-              style={nameHover ? { color: ACCENT } : {}}
+              className="text-[13px] font-bold transition-colors"
+              style={{ color: nameHover ? ACCENT : TEXT_HEADING }}
             >
               Nguyễn Mạnh Lực
             </p>
-            <p className="text-[11px] text-[#6E7078] font-semibold">Speaker</p>
+            <p className="text-[11px] font-semibold" style={{ color: TEXT_BODY }}>Speaker</p>
           </div>
-          <ChevronDown className={`w-3.5 h-3.5 text-[#6E7078] group-hover:text-[#2B2C31] transition-all ml-0.5 ${menuOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-all ml-0.5 ${menuOpen ? 'rotate-180' : ''}`}
+            style={{ color: TEXT_BODY }}
+          />
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-[#E5E2D8] shadow-[0_12px_28px_rgba(16,17,20,0.14)] overflow-hidden z-30 py-1">
+          <div
+            className="absolute right-0 top-full mt-2 w-52 rounded-xl overflow-hidden z-30 py-1"
+            style={{
+              background: '#FFFFFF',
+              border: `1px solid ${BORDER_LIGHT}`,
+              boxShadow: '0 12px 28px rgba(16,17,20,0.14)',
+            }}
+          >
             <button
               onClick={() => { setMenuOpen(false); navigate('/profile'); }}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-semibold text-[#2B2C31] hover:bg-[#F7F5EF] transition-colors text-left"
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-semibold hover:bg-[#F7F5EF] transition-colors text-left"
+              style={{ color: TEXT_HEADING }}
             >
-              <User className="w-4 h-4 text-[#6E7078]" /> Hồ sơ cá nhân
+              <User className="w-4 h-4" style={{ color: TEXT_BODY }} /> Hồ sơ cá nhân
             </button>
-            <div className="h-px bg-[#E5E2D8] mx-2 my-1" />
+            <div className="h-px mx-2 my-1" style={{ background: BORDER_LIGHT }} />
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-semibold hover:bg-[#FDEAEA] transition-colors text-left"

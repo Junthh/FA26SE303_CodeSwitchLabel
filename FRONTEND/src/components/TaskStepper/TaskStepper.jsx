@@ -1,13 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileCheck2, Mic, Headphones, UploadCloud, Check } from 'lucide-react';
+import { FileCheck2, Mic, UploadCloud, Check } from 'lucide-react';
 import { SPEAKER_ACCENT as ACCENT } from '../../constants/theme';
 
 const STEPS = [
   { number: 1, label: 'Duyệt văn bản', path: '/review-text', icon: FileCheck2 },
   { number: 2, label: 'Ghi âm', path: '/record-speech', icon: Mic },
-  { number: 3, label: 'Nghe lại', path: '/review-recording', icon: Headphones },
-  { number: 4, label: 'Nộp bài', path: '/submit-task', icon: UploadCloud },
+  { number: 3, label: 'Nộp bài', path: '/submit-task', icon: UploadCloud },
 ];
 
 export default function TaskStepper({ currentStep = 2 }) {

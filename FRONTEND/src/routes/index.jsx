@@ -61,39 +61,39 @@ const routes = [
       {
         path: "",
         element: lazy(
-          () => import("../pages/ReviewerTemplate/ReviewerDashboard/index"),
+          () => import("../pages/ReviewerTemplate/ReviewDashboard/index"),
         ),
       },
       {
         path: "task",
         element: lazy(
-          () => import("../pages/ReviewerTemplate/ReviewerTask/index"),
+          () => import("../pages/ReviewerTemplate/ReviewTask/index"),
         ),
       },
       // Kiểm duyệt
       {
         path: "recording",
         element: lazy(
-          () => import("../pages/ReviewerTemplate/Reviewer/ReviewerRecording/index"),
+          () => import("../pages/ReviewerTemplate/Review/ReviewRecording/index"),
         ),
       },
       {
         path: "contribution",
         element: lazy(
-          () => import("../pages/ReviewerTemplate/Reviewer/ReviewerContribution/index"),
+          () => import("../pages/ReviewerTemplate/Review/ReviewContribution/index"),
         ),
       },
       // Lịch sử kiểm duyệt
       {
         path: "history-recording",
         element: lazy(
-          () => import("../pages/ReviewerTemplate/ReviewerHistory/ReviewerHistoryRecording/index"),
+          () => import("../pages/ReviewerTemplate/ReviewHistory/ReviewHistoryRecording/index"),
         ),
       },
       {
         path: "history-contribution",
         element: lazy(
-          () => import("../pages/ReviewerTemplate/ReviewerHistory/ReviewerHistoryContribution/index"),
+          () => import("../pages/ReviewerTemplate/ReviewHistory/ReviewHistoryContribution/index"),
         ),
       },
     ],
