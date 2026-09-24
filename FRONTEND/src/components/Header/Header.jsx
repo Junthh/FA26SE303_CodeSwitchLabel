@@ -93,15 +93,20 @@ export default function Header({ role }) {
         <span className="w-px h-5 mx-2" style={{ background: BORDER_LIGHT }} />
 
         <div className="relative" ref={menuRef}>
+          {/* Tên + vai trò (không avatar vì API không có ảnh đại diện); vai trò tô theo màu accent của role */}
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="h-9 flex items-center gap-1.5 px-3 rounded-lg cursor-pointer transition-colors bg-black/[0.04] hover:bg-black/[0.07]"
+            className="h-[42px] flex items-center gap-2.5 pl-3.5 pr-2.5 rounded-[10px] cursor-pointer transition-colors bg-white hover:bg-black/[0.02]"
+            style={{ border: `1px solid ${BORDER_LIGHT}`, boxShadow: '0 1px 2px rgba(16,17,20,0.06)' }}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            <span className="text-[13px] font-bold" style={{ color: TEXT_HEADING }}>{user.name}</span>
+            <span className="flex flex-col text-left leading-tight">
+              <span className="text-[13.5px] font-bold" style={{ color: TEXT_HEADING }}>{user.name}</span>
+              <span className="text-[11.5px] font-semibold" style={{ color: accent }}>{user.role}</span>
+            </span>
             <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
               style={{ color: TEXT_BODY }}
             />
           </button>
