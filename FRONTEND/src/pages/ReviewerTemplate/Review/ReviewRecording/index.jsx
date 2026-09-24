@@ -1,7 +1,5 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
-  Play,
-  Pause,
   CheckCircle2,
   XCircle,
   Search,
@@ -13,8 +11,9 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import WaveSurfer from "wavesurfer.js";
 import Pagination from "../../../../components/Pagination/Pagination";
+import useFitPageSize from "../../../../hooks/useFitPageSize";
+import WaveformInline from "../../../../components/AudioPlayer/WaveformInline";
 import {
   parseCodeSwitch,
   stripTags,
@@ -22,63 +21,13 @@ import {
 import {
   REVIEWER_ACCENT as ACCENT,
   AUDIO_PRIMARY,
-  AUDIO_WAVE_IDLE,
-  AUDIO_WAVE_PROGRESS,
 } from "../../../../constants/theme";
+import { TASK_TOTALS, RECORDING_QUEUE } from "../../../../mocks/reviewer/recordings";
 
 // "00:04" -> 4 (giây)
 function parseDurationToSeconds(str) {
   const [m, s] = String(str).split(":").map(Number);
   return (m || 0) * 60 + (s || 0);
-}
-
-// Sinh dạng sóng giả cố định theo seed (id bản ghi) - dùng khi chưa có audio thật để WaveSurfer vẫn vẽ
-// được ngay lập tức. Cùng seed luôn ra cùng 1 hình dạng. Mô phỏng hình bao biên độ giọng nói thật:
-// khoảng lặng đầu/cuối rõ rệt + các "cụm từ" biên độ cao dạng vòm dồn ở giữa.
-// TODO: khi backend trả về audio thật, WaveSurfer sẽ tự vẽ lại đúng dạng sóng thật khi tải xong (event 'ready').
-function generatePeaks(seed, count = 60) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  let state = h || 1;
-  const rand = () => {
-    state ^= state << 13;
-    state >>>= 0;
-    state ^= state >> 17;
-    state ^= state << 5;
-    state >>>= 0;
-    return state / 4294967296;
-  };
-
-  const usableStart = Math.round(count * 0.08);
-  const usableEnd = count - Math.round(count * 0.08);
-  const usableLen = usableEnd - usableStart;
-
-  const peaks = new Array(count).fill(0);
-  const wordCount = 5 + Math.floor(rand() * 3); // 5-7 "từ"
-  const avgSlot = usableLen / wordCount;
-  let pos = usableStart;
-
-  for (let w = 0; w < wordCount && pos < usableEnd - 3; w++) {
-    const wordLen = Math.max(3, Math.round(avgSlot * (0.45 + rand() * 0.35)));
-    const peakAmp = 0.55 + rand() * 0.4;
-    for (let j = 0; j < wordLen && pos < usableEnd; j++, pos++) {
-      const envelope = Math.sin((j / wordLen) * Math.PI);
-      const jitter = 0.75 + rand() * 0.5;
-      peaks[pos] = Math.max(0.04, envelope * peakAmp * jitter);
-    }
-    pos += Math.max(1, Math.round(avgSlot * (0.15 + rand() * 0.25)));
-  }
-  for (let i = 0; i < count; i++)
-    if (peaks[i] === 0) peaks[i] = 0.03 + rand() * 0.04;
-
-  return peaks;
-}
-
-function formatTime(s) {
-  if (!isFinite(s)) return "0:00";
-  const m = Math.floor(Math.abs(s) / 60);
-  const sec = Math.floor(Math.abs(s) % 60);
-  return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
 /** Đoạn văn có nhãn [vi]/[en] -> câu Anh tô màu AUDIO_PRIMARY (audio/giọng đọc = xanh dương này). */
@@ -108,95 +57,6 @@ function InlineLabel({ variant }) {
   );
 }
 
-/**
- * Sparkline audio player - sóng âm cao 28px, chiều rộng co giãn theo màn hình.
- */
-function SparklinePlayer({
-  src,
-  seed,
-  fallbackDuration,
-  previewProgress,
-  useRealWaveform = false,
-}) {
-  const containerRef = useRef(null);
-  const waveSurferRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(fallbackDuration || 0);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const ws = WaveSurfer.create({
-      container: containerRef.current,
-      waveColor: AUDIO_WAVE_IDLE,
-      progressColor: AUDIO_WAVE_PROGRESS,
-      cursorWidth: 0,
-      barWidth: 2.5,
-      barGap: 1.5,
-      barRadius: 2,
-      height: 28,
-      normalize: true,
-      backend: "WebAudio",
-    });
-
-    ws.on("ready", () => setDuration(ws.getDuration()));
-    ws.on("play", () => setIsPlaying(true));
-    ws.on("pause", () => setIsPlaying(false));
-    ws.on("finish", () => setIsPlaying(false));
-
-    // Preview "đã nghe qua X%" cho một vài bản ghi - mô phỏng bằng seekTo, không phải đang phát thật.
-    if (useRealWaveform) {
-      ws.load(src);
-    } else {
-      ws.load(src, generatePeaks(seed), fallbackDuration || undefined);
-      if (previewProgress) ws.seekTo(previewProgress);
-    }
-
-    waveSurferRef.current = ws;
-    return () => ws.destroy();
-  }, [src, seed, fallbackDuration, previewProgress, useRealWaveform]);
-
-  const togglePlay = () => waveSurferRef.current?.playPause();
-
-  return (
-    <>
-      <button
-        onClick={togglePlay}
-        aria-label={isPlaying ? "Tạm dừng bản ghi" : "Phát bản ghi"}
-        className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 cursor-pointer"
-        style={{
-          background: AUDIO_PRIMARY,
-          boxShadow: "0 2px 6px rgba(37,99,235,0.3)",
-        }}
-      >
-        {isPlaying ? (
-          <Pause className="w-3.5 h-3.5" fill="currentColor" />
-        ) : (
-          <Play className="w-3.5 h-3.5 ml-0.5" fill="currentColor" />
-        )}
-      </button>
-      <div
-        ref={containerRef}
-        className="w-[clamp(80px,14vw,190px)] min-w-0 shrink"
-      />
-      <span className="font-mono text-[11px] text-[#9A9CA3] shrink-0 w-7">
-        {formatTime(duration)}
-      </span>
-    </>
-  );
-}
-
-// Tổng số bản đã submit cho từng nhiệm vụ - khớp đúng "target" ở trang Nhiệm vụ (ReviewTasks.jsx).
-// TODO: khi nối API thật, nên lấy trực tiếp từ endpoint nhiệm vụ (hoặc truyền qua query string khi
-// điều hướng từ trang Nhiệm vụ) thay vì bảng tra cứu tĩnh này.
-const TASK_TOTALS = {
-  "Nhiệm vụ ghi âm hàng ngày": 100,
-  "Nhiệm vụ ghi âm cuối tuần": 80,
-  "Chủ đề công nghệ & AI": 150,
-  "Chủ đề đặc biệt: Giáo dục": 120,
-  "Thu âm hội thoại công sở": 60,
-};
-
 export default function ReviewRecording() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -213,229 +73,7 @@ export default function ReviewRecording() {
   const [rejectCategory, setRejectCategory] = useState("pronunciation");
   const [rejectReason, setRejectReason] = useState("");
 
-  const pageSize = 5;
-
-  const [activeQueue, setActiveQueue] = useState([
-    {
-      id: "REC-2025-001",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Nguyễn Mạnh Lực",
-      time: "08/09/2026 - 08:30",
-      csText: "[vi]Em nhớ [en]upload [vi]tài liệu trước [en]deadline [vi]nhé.",
-      csAudioUrl: "/review-recording-first-sample.m4a",
-      csDuration: "00:05",
-      viText: "Em nhớ tải lên tài liệu trước hạn chót nhé.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-002",
-      taskName: "Nhiệm vụ ghi âm cuối tuần",
-      speaker: "Trần Minh Tâm",
-      time: "07/09/2026 - 17:15",
-      csText: "[vi]Gửi cho mình [en]slide [vi]báo cáo trước 5h chiều nhé.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Gửi cho mình bản trình chiếu báo cáo trước 5h chiều nhé.",
-      viAudioUrl: null,
-      viDuration: "00:06",
-    },
-    {
-      id: "REC-2025-003",
-      taskName: "Chủ đề công nghệ & AI",
-      speaker: "Lê Hoàng Nam",
-      time: "07/09/2026 - 15:30",
-      csText:
-        "[vi]Cần [en]fix bug [vi]này gấp trước khi [en]release [vi]bản mới.",
-      csAudioUrl: null,
-      csDuration: "00:06",
-      viText: "Cần sửa lỗi này gấp trước khi phát hành bản mới.",
-      viAudioUrl: null,
-      viDuration: "00:06",
-      viPreview: 0.62,
-    },
-    {
-      id: "REC-2025-004",
-      taskName: "Chủ đề đặc biệt: Giáo dục",
-      speaker: "Nguyễn Mạnh Lực",
-      time: "07/09/2026 - 14:10",
-      csText: "[vi]Thầy vừa gửi [en]link zoom [vi]qua [en]email [vi]lớp rồi.",
-      csAudioUrl: null,
-      csDuration: "00:04",
-      viText: "Thầy vừa gửi đường dẫn zoom qua thư điện tử lớp rồi.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-005",
-      taskName: "Thu âm hội thoại công sở",
-      speaker: "Phạm Thu Thảo",
-      time: "06/09/2026 - 13:45",
-      csText:
-        "[vi]Cuối tuần này cả [en]team [vi]đi [en]workshop [vi]ở Quận 1 nhé.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Cuối tuần này cả nhóm đi hội thảo ở Quận 1 nhé.",
-      viAudioUrl: null,
-      viDuration: "00:06",
-    },
-    {
-      id: "REC-2025-006",
-      taskName: "Chủ đề công nghệ & AI",
-      speaker: "Hoàng Quốc Bảo",
-      time: "06/09/2026 - 11:20",
-      csText: "[vi]Mô hình [en]AI [vi]này xử lý [en]prompt [vi]rất nhanh.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Mô hình trí tuệ nhân tạo này xử lý câu lệnh rất nhanh.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-007",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Đặng Mai Phương",
-      time: "06/09/2026 - 10:05",
-      csText: "[vi]Bạn đã [en]book [vi]lịch họp với khách hàng chưa?",
-      csAudioUrl: null,
-      csDuration: "00:04",
-      viText: "Bạn đã đặt lịch họp với khách hàng chưa?",
-      viAudioUrl: null,
-      viDuration: "00:04",
-    },
-    {
-      id: "REC-2025-008",
-      taskName: "Thu âm hội thoại công sở",
-      speaker: "Trần Minh Tâm",
-      time: "06/09/2026 - 09:45",
-      csText: "[vi]Tối nay [en]order [vi]đồ ăn ở quán cũ nhé.",
-      csAudioUrl: null,
-      csDuration: "00:03",
-      viText: "Tối nay đặt đồ ăn ở quán cũ nhé.",
-      viAudioUrl: null,
-      viDuration: "00:04",
-    },
-    {
-      id: "REC-2025-009",
-      taskName: "Chủ đề đặc biệt: Giáo dục",
-      speaker: "Lê Hoàng Nam",
-      time: "05/09/2026 - 16:00",
-      csText: "[vi]Hạn nộp [en]assignment [vi]là cuối tuần này.",
-      csAudioUrl: null,
-      csDuration: "00:04",
-      viText: "Hạn nộp bài tập là cuối tuần này.",
-      viAudioUrl: null,
-      viDuration: "00:04",
-    },
-    {
-      id: "REC-2025-010",
-      taskName: "Nhiệm vụ ghi âm cuối tuần",
-      speaker: "Phạm Thu Thảo",
-      time: "03/09/2026 - 15:45",
-      csText: "[vi]Bộ phim mới ra mắt có [en]rating [vi]rất cao.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Bộ phim mới ra mắt có điểm đánh giá rất cao.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-011",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Lê Hoàng Nam",
-      time: "03/09/2026 - 08:50",
-      csText: "[vi]Bạn nhớ [en]check-in [vi]trước 9 giờ sáng nhé.",
-      csAudioUrl: null,
-      csDuration: "00:04",
-      viText: "Bạn nhớ đến điểm danh trước 9 giờ sáng nhé.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-012",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Phạm Thu Thảo",
-      time: "02/09/2026 - 16:40",
-      csText: "[vi]Nhớ [en]backup [vi]dữ liệu trước khi tắt máy.",
-      csAudioUrl: null,
-      csDuration: "00:04",
-      viText: "Nhớ sao lưu dữ liệu trước khi tắt máy.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-013",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Hoàng Quốc Bảo",
-      time: "02/09/2026 - 09:15",
-      csText: "[vi]Sếp muốn [en]feedback [vi]sớm về bản thiết kế.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Sếp muốn phản hồi sớm về bản thiết kế.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-014",
-      taskName: "Chủ đề công nghệ & AI",
-      speaker: "Trần Minh Tâm",
-      time: "01/09/2026 - 14:25",
-      csText: "[vi]Server [vi]đang bị [en]down [vi], mọi người kiểm tra giúp.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Máy chủ đang bị sập, mọi người kiểm tra giúp.",
-      viAudioUrl: null,
-      viDuration: "00:06",
-    },
-    {
-      id: "REC-2025-015",
-      taskName: "Chủ đề đặc biệt: Giáo dục",
-      speaker: "Đặng Mai Phương",
-      time: "01/09/2026 - 10:30",
-      csText: "[vi]Lớp mình sẽ có 1 bài [en]quiz [vi]ngắn vào thứ Sáu.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Lớp mình sẽ có 1 bài kiểm tra ngắn vào thứ Sáu.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-016",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Trần Minh Tâm",
-      time: "31/08/2026 - 08:20",
-      csText: "[vi]Nhớ [en]confirm [vi]lại giờ họp chiều nay nhé.",
-      csAudioUrl: null,
-      csDuration: "00:04",
-      viText: "Nhớ xác nhận lại giờ họp chiều nay nhé.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-017",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Nguyễn Mạnh Lực",
-      time: "31/08/2026 - 07:45",
-      csText: "[vi]Sáng nay mình có 1 cuộc [en]call [vi]với khách hàng.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Sáng nay mình có 1 cuộc gọi với khách hàng.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-    {
-      id: "REC-2025-018",
-      taskName: "Nhiệm vụ ghi âm hàng ngày",
-      speaker: "Đặng Mai Phương",
-      time: "30/08/2026 - 17:10",
-      csText: "[vi]Đừng quên [en]submit [vi]báo cáo trước 6 giờ chiều.",
-      csAudioUrl: null,
-      csDuration: "00:05",
-      viText: "Đừng quên nộp báo cáo trước 6 giờ chiều.",
-      viAudioUrl: null,
-      viDuration: "00:05",
-    },
-  ]);
+  const [activeQueue, setActiveQueue] = useState(RECORDING_QUEUE);
 
   const filteredQueue = useMemo(() => {
     return activeQueue.filter((rec) => {
@@ -457,6 +95,9 @@ export default function ReviewRecording() {
     });
   }, [activeQueue, searchTerm, filterSpeaker, filterTask]);
 
+  const hasRows = filteredQueue.length > 0;
+  const [listRef, pageSize] = useFitPageSize(5, [hasRows]);
+
   const totalPages = Math.ceil(filteredQueue.length / pageSize) || 1;
 
   useEffect(() => {
@@ -469,7 +110,7 @@ export default function ReviewRecording() {
     const start = (currentPage - 1) * pageSize;
 
     return filteredQueue.slice(start, start + pageSize);
-  }, [filteredQueue, currentPage]);
+  }, [filteredQueue, currentPage, pageSize]);
 
   const handleApprove = (id) => {
     setActiveQueue((prev) => prev.filter((rec) => rec.id !== id));
@@ -505,10 +146,10 @@ export default function ReviewRecording() {
     : 0;
 
   return (
-    <div className="space-y-2.5 text-left font-sans">
+    <div className="h-full min-h-0 flex flex-col gap-2.5 text-left font-sans">
       {/* ================= HEADER / TASK INFO ================= */}
       {taskTotal !== undefined && (
-        <div className="bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
+        <div className="shrink-0 bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
           {/* Task progress */}
           <div className="px-3.5 py-2.5 flex items-center gap-4">
             <div className="flex items-center gap-2 shrink-0">
@@ -655,7 +296,8 @@ export default function ReviewRecording() {
 
       {/* ================= RECORDING LIST ================= */}
       {paginatedQueue.length > 0 ? (
-        <div className="bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
+          <div ref={listRef} className="flex-1 min-h-0 overflow-hidden">
           {paginatedQueue.map((rec, idx) => (
             <div
               key={rec.id}
@@ -708,12 +350,13 @@ export default function ReviewRecording() {
               <div className="flex flex-wrap xl:flex-nowrap items-center gap-x-2.5 gap-y-1 py-0.5 sm:pl-7">
                 <InlineLabel variant="cs" />
 
-                <SparklinePlayer
-                  src={rec.csAudioUrl || "/demo-recording-cs.wav"}
-                  useRealWaveform={Boolean(rec.csAudioUrl)}
-                  seed={`${rec.id}-cs`}
-                  fallbackDuration={parseDurationToSeconds(rec.csDuration)}
+                <WaveformInline
+                  label="VI-EN"
+                  src={rec.csAudioUrl}
+                  demoSeed={`${rec.id}-cs`}
+                  demoDuration={parseDurationToSeconds(rec.csDuration)}
                   previewProgress={rec.csPreview}
+                  className="w-[clamp(140px,19vw,270px)] shrink-0"
                 />
 
                 <p className="text-sm font-semibold text-[#16171C] leading-5 basis-full xl:basis-auto xl:flex-1 xl:ml-1 min-w-0 break-words">
@@ -725,12 +368,13 @@ export default function ReviewRecording() {
               <div className="flex flex-wrap xl:flex-nowrap items-center gap-x-2.5 gap-y-1 py-0.5 sm:pl-7">
                 <InlineLabel variant="vi" />
 
-                <SparklinePlayer
-                  src={rec.viAudioUrl || "/demo-recording-vi.wav"}
-                  useRealWaveform={Boolean(rec.viAudioUrl)}
-                  seed={`${rec.id}-vi`}
-                  fallbackDuration={parseDurationToSeconds(rec.viDuration)}
+                <WaveformInline
+                  label="VI"
+                  src={rec.viAudioUrl}
+                  demoSeed={`${rec.id}-vi`}
+                  demoDuration={parseDurationToSeconds(rec.viDuration)}
                   previewProgress={rec.viPreview}
+                  className="w-[clamp(140px,19vw,270px)] shrink-0"
                 />
 
                 <p className="text-sm font-semibold text-[#16171C] leading-5 basis-full xl:basis-auto xl:flex-1 xl:ml-1 min-w-0 break-words">
@@ -739,9 +383,10 @@ export default function ReviewRecording() {
               </div>
             </div>
           ))}
+          </div>
 
           {/* ================= PAGINATION ================= */}
-          <div className="border-t border-[#F0EEE6] px-4 py-2 flex justify-center">
+          <div className="shrink-0 border-t border-[#F0EEE6] px-4 py-2 flex justify-center">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

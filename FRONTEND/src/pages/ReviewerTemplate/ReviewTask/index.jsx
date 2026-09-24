@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { Search, Filter, ArrowRight, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../../../components/Pagination/Pagination';
+import useFitPageSize from '../../../hooks/useFitPageSize';
 import { REVIEWER_ACCENT as ACCENT } from '../../../constants/theme';
+import { ASSIGNED_TASKS } from '../../../mocks/reviewer/tasks';
 
 // Thứ tự ưu tiên hiển thị theo nhóm trạng thái
 const STATUS_ORDER = { 'in-progress': 0, 'pending': 1, 'completed': 2 };
@@ -15,20 +17,7 @@ export default function ReviewTasks() {
   const [filterAssignee, setFilterAssignee] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const pageSize = 10;
-
-  const assignedTasks = [
-    { id: '1', title: 'Nhiệm vụ ghi âm hàng ngày', assignedBy: 'Admin - Nguyễn Hoàng', target: 100, reviewed: 65, deadline: '28/05/2025', status: 'Đang thực hiện', statusType: 'in-progress' },
-    { id: '2', title: 'Nhiệm vụ ghi âm cuối tuần', assignedBy: 'Manager - Trần Anh', target: 80, reviewed: 80, deadline: '25/05/2025', status: 'Hoàn thành', statusType: 'completed' },
-    { id: '3', title: 'Chủ đề công nghệ & AI', assignedBy: 'Admin - Nguyễn Hoàng', target: 150, reviewed: 135, deadline: '05/06/2025', status: 'Đang thực hiện', statusType: 'in-progress' },
-    { id: '4', title: 'Chủ đề đặc biệt: Giáo dục', assignedBy: 'Manager - Trần Anh', target: 120, reviewed: 0, deadline: '10/06/2025', status: 'Chưa bắt đầu', statusType: 'pending' },
-    { id: '5', title: 'Thu âm hội thoại công sở', assignedBy: 'Admin - Nguyễn Hoàng', target: 60, reviewed: 60, deadline: '15/06/2025', status: 'Hoàn thành', statusType: 'completed' },
-    { id: '6', title: 'Hội thoại đời sống thường nhật', assignedBy: 'Manager - Trần Anh', target: 110, reviewed: 30, deadline: '20/06/2025', status: 'Đang thực hiện', statusType: 'in-progress' },
-    { id: '7', title: 'Bản tin kinh tế tài chính', assignedBy: 'Admin - Nguyễn Hoàng', target: 90, reviewed: 0, deadline: '25/06/2025', status: 'Chưa bắt đầu', statusType: 'pending' },
-    { id: '8', title: 'Khảo sát giọng nói vùng miền', assignedBy: 'Manager - Trần Anh', target: 130, reviewed: 130, deadline: '30/06/2025', status: 'Hoàn thành', statusType: 'completed' },
-    { id: '9', title: 'Đọc văn bản văn học cổ điển', assignedBy: 'Admin - Nguyễn Hoàng', target: 140, reviewed: 45, deadline: '05/07/2025', status: 'Đang thực hiện', statusType: 'in-progress' },
-    { id: '10', title: 'Thu âm thuật toán nâng cao', assignedBy: 'Manager - Trần Anh', target: 85, reviewed: 0, deadline: '10/07/2025', status: 'Chưa bắt đầu', statusType: 'pending' },
-  ];
+  const assignedTasks = ASSIGNED_TASKS;
 
   const filteredTasks = useMemo(() => {
     const list = assignedTasks.filter((task) => {
@@ -41,11 +30,13 @@ export default function ReviewTasks() {
     return [...list].sort((a, b) => STATUS_ORDER[a.statusType] - STATUS_ORDER[b.statusType]);
   }, [assignedTasks, searchTerm, filterAssignee, filterStatus]);
 
+  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
+  const [listRef, pageSize] = useFitPageSize(10, [filteredTasks.length > 0], 'tbody > tr');
   const totalPages = Math.ceil(filteredTasks.length / pageSize) || 1;
   const paginatedTasks = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredTasks.slice(start, start + pageSize);
-  }, [filteredTasks, currentPage]);
+  }, [filteredTasks, currentPage, pageSize]);
 
   // Style trạng thái theo hệ màu app
   const statusStyle = (type) => {
@@ -55,10 +46,10 @@ export default function ReviewTasks() {
   };
 
   return (
-    <div className="space-y-4 pb-6 text-left font-sans">
+    <div className="h-full min-h-0 flex flex-col gap-4 text-left font-sans">
 
       {/* Thanh lọc & tìm kiếm */}
-      <div className="bg-white p-3 rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] flex flex-col md:flex-row gap-3 justify-between items-center">
+      <div className="shrink-0 bg-white p-3 rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] flex flex-col md:flex-row gap-3 justify-between items-center">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#9A9CA3] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -96,8 +87,8 @@ export default function ReviewTasks() {
       </div>
 
       {/* Bảng */}
-      <div className="bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] overflow-hidden">
+        <div ref={listRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-[#F7F5EF] text-[11px] uppercase tracking-wider text-[#9A9CA3] border-b border-[#E5E2D8] font-bold">
@@ -167,7 +158,7 @@ export default function ReviewTasks() {
           </table>
         </div>
 
-        <div className="px-3 border-t border-[#E5E2D8]">
+        <div className="shrink-0 px-3 border-t border-[#E5E2D8]">
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} accent={ACCENT} />
         </div>
       </div>

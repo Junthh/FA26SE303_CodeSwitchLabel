@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import TaskStepper from '../../../components/TaskStepper/TaskStepper';
 import { Play, Pause, RotateCcw, RotateCw, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import WaveSurfer from 'wavesurfer.js';
+import useWaveSurfer from '../../../hooks/useWaveSurfer';
+import { formatTime } from '../../../utils/audio';
 import {
   SPEAKER_ACCENT as ACCENT,
-  AUDIO_PRIMARY, AUDIO_WAVE_IDLE, AUDIO_WAVE_PROGRESS, AUDIO_SHADOW,
+  AUDIO_PRIMARY, AUDIO_SHADOW,
   TEXT_HEADING, TEXT_BODY,
   BORDER_LIGHT, SURFACE_MUTED,
 } from '../../../constants/theme';
@@ -18,61 +19,13 @@ export default function ReviewRecording({ audioUrl: propUrl }) {
   const src = location.state?.audioUrl || propUrl || '/demo-recording.wav';
 
   const waveContainerRef = useRef(null);
-  const waveSurferRef = useRef(null);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    if (!waveContainerRef.current) return;
-
-    const ws = WaveSurfer.create({
-      container: waveContainerRef.current,
-      waveColor: AUDIO_WAVE_IDLE,
-      progressColor: AUDIO_WAVE_PROGRESS,
-      cursorColor: AUDIO_PRIMARY,
-      cursorWidth: 2,
-      barWidth: 2,
-      barGap: 1.5,
-      barRadius: 2,
-      height: 64,
-      normalize: true,
-      backend: 'WebAudio',
-    });
-
-    ws.load(src);
-
-    ws.on('ready', () => setDuration(ws.getDuration()));
-    ws.on('audioprocess', () => setCurrentTime(ws.getCurrentTime()));
-    ws.on('seeking', () => setCurrentTime(ws.getCurrentTime()));
-    ws.on('play', () => setIsPlaying(true));
-    ws.on('pause', () => setIsPlaying(false));
-    ws.on('finish', () => setIsPlaying(false));
-
-    waveSurferRef.current = ws;
-
-    return () => ws.destroy();
-  }, [src]);
-
-  const togglePlay = () => {
-    if (!waveSurferRef.current) return;
-    waveSurferRef.current.playPause();
-  };
-
-  const seekBy = (delta) => {
-    const ws = waveSurferRef.current;
-    if (!ws || !duration) return;
-    const newTime = Math.min(duration, Math.max(0, ws.getCurrentTime() + delta));
-    ws.seekTo(newTime / duration);
-  };
-
-  const formatTime = (s) => {
-    if (!isFinite(s)) return '0:00';
-    const m = Math.floor(Math.abs(s) / 60);
-    const sec = Math.floor(Math.abs(s) % 60);
-    return `${m}:${String(sec).padStart(2, '0')}`;
-  };
+  const { playing: isPlaying, currentTime, duration, playPause: togglePlay, seekBy } = useWaveSurfer(waveContainerRef, src, {
+    cursorColor: AUDIO_PRIMARY,
+    cursorWidth: 2,
+    barWidth: 2,
+    height: 64,
+    backend: 'WebAudio',
+  });
 
   return (
     <div className="space-y-5 pb-6 text-left max-w-3xl mx-auto font-sans">
@@ -84,7 +37,7 @@ export default function ReviewRecording({ audioUrl: propUrl }) {
       >
         <div>
           <h3 className="font-bold text-[15px]" style={{ color: TEXT_HEADING }}>Nghe lại bản ghi của bạn</h3>
-          <p className="text-[12.5px] mt-0.5" style={{ color: TEXT_BODY }}>Đảm bảo giọng đọc rõ ràng, đúng câu trước khi nộp bài.</p>
+          <p className="text-[12.5px] mt-0.5" style={{ color: TEXT_BODY }}>Đảm bảo giọng đọc rõ ràng, đúng câu trước khi gửi.</p>
         </div>
 
         {/* WaveSurfer waveform */}

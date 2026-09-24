@@ -29,7 +29,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
   const [openGroups, setOpenGroups] = useState(() => {
     if (!config) return {};
     const initial = {};
-    config.items.forEach((item) => {
+    (config.items ?? []).forEach((item) => {
       if (item.children) initial[item.name] = isGroupActive(item);
     });
     return initial;
@@ -41,7 +41,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
     return null;
   }
 
-  const { background, idleText, accent, accentIcon, accentSoftBg, items, promo } = config;
+  const { background, idleText, accent, accentIcon, accentSoftBg, items, sections, promo } = config;
 
   const itemBase = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all';
   const idleCls = 'text-[var(--sidebar-idle)] hover:bg-white/[0.06] hover:text-white';
@@ -68,7 +68,45 @@ export default function Sidebar({ role, isOpen, onClose }) {
           </button>
         </div>
 
+        {/* Kiểu menu chia nhóm (config.sections): tiêu đề nhóm nhỏ, menu phẳng; mục đang chọn dùng
+            cùng kiểu với Reviewer (viền + cạnh trái dày). Role nào không có sections thì dùng kiểu items cũ bên dưới. */}
+        {sections && (
+          <nav className="text-left">
+            {sections.map((section) => (
+              <div key={section.title}>
+                <p className="px-3 mt-4 mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--sidebar-idle)] opacity-70">
+                  {section.title}
+                </p>
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const inFlow = item.activeOn?.includes(path) ?? false;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={item.end}
+                        onClick={onClose}
+                        className={({ isActive }) => `${itemBase} ${isActive || inFlow ? 'text-white border border-l-[3px]' : idleCls}`}
+                        style={({ isActive }) => (isActive || inFlow ? activeStyle : {})}
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Icon className="w-4 h-4 shrink-0" style={isActive || inFlow ? { color: accentIcon } : {}} />
+                            <span>{item.name}</span>
+                          </>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+        )}
+
         {/* Menu điều hướng - render hoàn toàn từ config */}
+        {items && (
         <nav className="space-y-1 text-left">
           {items.map((item) => {
             const Icon = item.icon;
@@ -145,6 +183,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
             );
           })}
         </nav>
+        )}
 
         {/* Thẻ nhắc nhở nhỏ cuối sidebar - chỉ hiện nếu role có cấu hình promo */}
         {promo && (

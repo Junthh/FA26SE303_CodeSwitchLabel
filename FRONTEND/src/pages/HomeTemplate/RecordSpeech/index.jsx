@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import TaskStepper from '../../../components/TaskStepper/TaskStepper';
 import { Mic, RotateCcw, Play, Pause, Check, ArrowRight, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import WaveSurfer from 'wavesurfer.js';
+import useWaveSurfer from '../../../hooks/useWaveSurfer';
+import { formatTime } from '../../../utils/audio';
 import { parseCodeSwitch } from '../../../components/CodeSwitchText/CodeSwitchText';
 import {
   SPEAKER_ACCENT as ACCENT,
@@ -11,15 +12,16 @@ import {
   TEXT_HEADING, TEXT_BODY, TEXT_FAINT,
   BORDER_LIGHT, SURFACE_MUTED,
 } from '../../../constants/theme';
+import { CURRENT_SENTENCE } from '../../../mocks/speaker/tasks';
 
 const HISTORY_LEN = 60;
 const WAVEFORM_INTERVAL_MS = 80;
 // Sóng phẳng tĩnh hiển thị khi chưa ghi âm - để card giữ đúng chiều cao như lúc đang ghi/đã ghi
 const IDLE_WAVE = Array.from({ length: HISTORY_LEN }, (_, i) => 6 + 3 * Math.sin(i / 4));
 
-// TODO: thay bằng dữ liệu thật từ API
-const SENTENCE_CS = '[vi]Em nên [en]scan [vi]tài liệu này rồi gửi qua [en]email [vi]cho tôi.';
-const SENTENCE_VI = 'Em nên quét tài liệu này rồi gửi qua thư điện tử cho tôi.';
+// Câu đang ghi âm - tạm lấy từ dữ liệu mẫu (TODO: thay bằng dữ liệu thật từ API)
+const SENTENCE_CS = CURRENT_SENTENCE.cs_transcript;
+const SENTENCE_VI = stripLangTags(CURRENT_SENTENCE.vi_equivalent);
 
 function stripLangTags(text) {
   return text.replace(/\[(vi|en)\]/g, '').trim();
@@ -36,9 +38,6 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
   const [recordingTime, setRecordingTime] = useState(0);
   const [waveHistory, setWaveHistory] = useState(Array(HISTORY_LEN).fill(3));
   const [audioUrl, setAudioUrl] = useState(null);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   const streamRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -47,7 +46,6 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const waveContainerRef = useRef(null);
-  const waveSurferRef = useRef(null);
 
   const isThisRecording = recordingCardId === id;
   const canStart = recordingCardId === null; // chỉ 1 card được ghi cùng lúc
@@ -130,57 +128,31 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
   };
 
   const reRecord = () => {
-    if (waveSurferRef.current) {
-      waveSurferRef.current.destroy();
-      waveSurferRef.current = null;
-    }
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(null);
     setStatus('idle');
     onRecordedChange(id, false, null);
   };
 
-  // Khởi tạo WaveSurfer khi đã có bản ghi
-  useEffect(() => {
-    if (status !== 'recorded' || !audioUrl || !waveContainerRef.current) return;
-
-    const ws = WaveSurfer.create({
-      container: waveContainerRef.current,
-      waveColor: AUDIO_WAVE_IDLE,
-      progressColor: AUDIO_WAVE_PROGRESS,
+  // WaveSurfer chỉ tạo khi đã có bản ghi (khung sóng lúc đó mới hiện); ghi lại -> src null -> tự huỷ
+  const { playing: isPlaying, currentTime, duration, playPause } = useWaveSurfer(
+    waveContainerRef,
+    status === 'recorded' ? audioUrl : null,
+    {
       cursorColor: AUDIO_PRIMARY,
       cursorWidth: 2,
       barWidth: 2,
-      barGap: 1.5,
-      barRadius: 2,
-      height: 44,
-      normalize: true,
+      // Khớp chiều cao khung sóng: h-10 (40px) trên màn thấp, h-11 (44px) trên màn cao >= 900px
+      height: window.matchMedia('(min-height: 900px)').matches ? 44 : 40,
       backend: 'WebAudio',
-    });
-    ws.load(audioUrl);
-    ws.on('ready', () => setDuration(ws.getDuration()));
-    ws.on('audioprocess', () => setCurrentTime(ws.getCurrentTime()));
-    ws.on('seeking', () => setCurrentTime(ws.getCurrentTime()));
-    ws.on('play', () => setIsPlaying(true));
-    ws.on('pause', () => setIsPlaying(false));
-    ws.on('finish', () => setIsPlaying(false));
-    waveSurferRef.current = ws;
-
-    return () => ws.destroy();
-  }, [status, audioUrl]);
+    },
+  );
 
   useEffect(() => () => cleanupRecordingResources(), []);
 
-  const formatTime = (s) => {
-    if (!isFinite(s)) return '0:00';
-    const m = Math.floor(Math.abs(s) / 60);
-    const sec = Math.floor(Math.abs(s) % 60);
-    return `${m}:${String(sec).padStart(2, '0')}`;
-  };
-
   return (
     <div
-      className="rounded-2xl p-5"
+      className="rounded-2xl p-4 [@media(min-height:900px)]:p-5"
       style={{
         background: '#FFFFFF',
         border: status === 'recording' ? `1.5px solid ${AUDIO_PRIMARY}` : `1px solid ${BORDER_LIGHT}`,
@@ -188,7 +160,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
       }}
     >
       {/* Header trạng thái */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1.5 [@media(min-height:900px)]:mb-2">
         <span
           className="w-1.5 h-1.5 rounded-full"
           style={{ background: status === 'idle' ? AUDIO_PRIMARY : status === 'recording' ? AUDIO_PRIMARY : '#1DB954' }}
@@ -202,16 +174,16 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
       </div>
 
       {/* Nội dung câu */}
-      <p className="text-lg font-bold leading-relaxed mb-4" style={{ color: TEXT_HEADING }}>
+      <p className="text-lg font-bold leading-snug [@media(min-height:900px)]:leading-relaxed mb-2 [@media(min-height:900px)]:mb-4" style={{ color: TEXT_HEADING }}>
         {contentNode}
       </p>
 
       {/* Cả 3 trạng thái dùng chung 1 khung: waveform row -> time row -> button row.
           Giữ đúng cùng chiều cao ở mỗi hàng để card không đổi kích thước khi chuyển trạng thái -> tránh giật layout/scroll. */}
-      <div className="space-y-2.5">
-        {/* Waveform row - h-11 cố định cho cả 3 trạng thái */}
+      <div className="space-y-2 [@media(min-height:900px)]:space-y-2.5">
+        {/* Waveform row - chiều cao cố định cho cả 3 trạng thái (h-10, màn cao h-11) */}
         <div
-          className="relative w-full h-11 rounded-lg overflow-hidden flex items-center px-2"
+          className="relative w-full h-10 [@media(min-height:900px)]:h-11 rounded-lg overflow-hidden flex items-center px-2"
           style={{ background: SURFACE_MUTED }}
         >
           {status === 'recorded' ? (
@@ -258,13 +230,13 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
           )}
         </div>
 
-        {/* Button row - luôn cao h-11, chỉ đổi nội dung/hành vi */}
+        {/* Button row - chiều cao cố định (h-10, màn cao h-11), chỉ đổi nội dung/hành vi */}
         <div className="flex items-center gap-2">
           {status === 'idle' && (
             <button
               onClick={startRecording}
               disabled={!canStart}
-              className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: AUDIO_PRIMARY, boxShadow: canStart ? `0 6px 16px ${AUDIO_SHADOW}` : 'none' }}
             >
               <Mic className="w-4 h-4" /> Ghi âm câu này
@@ -273,7 +245,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
           {status === 'recording' && (
             <button
               onClick={stopAndFinish}
-              className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all"
+              className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all"
               style={{ background: AUDIO_PRIMARY, boxShadow: `0 6px 16px ${AUDIO_SHADOW}` }}
             >
               <span className="w-3 h-3 rounded-sm bg-white" /> Dừng ghi
@@ -282,8 +254,8 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
           {status === 'recorded' && (
             <>
               <button
-                onClick={() => waveSurferRef.current?.playPause()}
-                className="flex-1 h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all"
+                onClick={playPause}
+                className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all"
                 style={{ background: AUDIO_PRIMARY }}
               >
                 {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
@@ -291,11 +263,10 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
               </button>
               <button
                 onClick={reRecord}
-                className="w-11 h-11 rounded-lg flex items-center justify-center transition-all shrink-0"
-                style={{ background: SURFACE_MUTED, border: `1px solid ${BORDER_LIGHT}`, color: TEXT_BODY }}
-                title="Ghi âm lại"
+                className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold transition-all hover:opacity-80"
+                style={{ background: 'white', border: `1.5px solid ${AUDIO_PRIMARY}`, color: AUDIO_PRIMARY }}
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4" /> Ghi âm lại
               </button>
             </>
           )}
@@ -322,7 +293,7 @@ export default function RecordSpeech() {
   const sentenceSegments = parseCodeSwitch(SENTENCE_CS);
 
   return (
-    <div className="space-y-4 text-left pb-6 max-w-3xl mx-auto font-sans">
+    <div className="space-y-3 [@media(min-height:900px)]:space-y-4 text-left [@media(min-height:900px)]:pb-6 max-w-3xl mx-auto font-sans">
       <TaskStepper currentStep={2} />
 
       {/* 2 card độc lập */}
@@ -347,7 +318,7 @@ export default function RecordSpeech() {
 
       {/* Lưu ý */}
       <div
-        className="rounded-2xl p-4 flex flex-wrap items-center gap-x-5 gap-y-2"
+        className="rounded-2xl px-4 py-3 [@media(min-height:900px)]:p-4 flex flex-wrap items-center gap-x-5 gap-y-2"
         style={{ background: '#FFFFFF', border: `1px solid ${BORDER_LIGHT}`, boxShadow: '0 1px 3px rgba(16,17,20,0.04)' }}
       >
         <span className="text-[12.5px] font-bold flex items-center gap-1.5 shrink-0" style={{ color: TEXT_HEADING }}>
@@ -360,10 +331,10 @@ export default function RecordSpeech() {
         <span className="text-[12.5px]" style={{ color: TEXT_BODY }}>Không gian yên tĩnh</span>
       </div>
 
-      {/* Nộp bài — sticky đáy khung cuộn, có nền mờ dần để không dính sát mép màn hình
+      {/* Nút Tiếp tục — sticky đáy khung cuộn, có nền mờ dần để không dính sát mép màn hình
           và luôn dễ bấm mà không cần cuộn hết trang. */}
       <div
-        className="sticky bottom-0 left-0 right-0 pt-6 pb-5 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+        className="sticky bottom-0 left-0 right-0 [@media(min-height:900px)]:pt-6 [@media(min-height:900px)]:pb-5 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
         style={{ background: 'linear-gradient(to top, #F7F5EF 55%, rgba(247,245,239,0))' }}
       >
         <button
@@ -379,18 +350,18 @@ export default function RecordSpeech() {
             })
           }
           disabled={!bothDone}
-          className="w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
+          className="w-full py-3 [@media(min-height:900px)]:py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
           style={{
             background: bothDone ? ACCENT : SURFACE_MUTED,
             color: bothDone ? '#FFFFFF' : TEXT_FAINT,
             boxShadow: bothDone ? `0 10px 24px ${ACCENT}40` : 'none',
           }}
         >
-          <Check className="w-4 h-4" /> Nộp bài <ArrowRight className="w-4 h-4" />
+          <Check className="w-4 h-4" /> Tiếp tục <ArrowRight className="w-4 h-4" />
         </button>
         {!bothDone && (
-          <p className="text-[11.5px] text-center mt-2" style={{ color: TEXT_FAINT }}>
-            Ghi xong cả 2 câu để nộp bài
+          <p className="text-[11.5px] text-center mt-1.5 [@media(min-height:900px)]:mt-2" style={{ color: TEXT_FAINT }}>
+            Ghi xong cả 2 câu để tiếp tục
           </p>
         )}
       </div>

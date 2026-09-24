@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import Pagination from "../../../../components/Pagination/Pagination";
+import useFitPageSize from "../../../../hooks/useFitPageSize";
 import { CheckCircle2, XCircle, Clock, AlertCircle, Eye, X, BarChart3, Search, ArrowRight } from "lucide-react";
 import { SPEAKER_ACCENT as ACCENT, SUCCESS, DANGER, WARNING } from "../../../../constants/theme";
+import { CONTRIBUTION_HISTORY as TEXT_HISTORY } from "../../../../mocks/speaker/history";
 
 function SentenceContent({ item }) {
   return (
@@ -107,111 +109,6 @@ function FeedbackButton({ status, votedCount, onClick, ariaLabel }) {
   );
 }
 
-// TODO: thay bằng dữ liệu thật từ API. Mỗi câu giờ đủ 3 reviewer (giống RecordingHistory) và có alignment
-// khớp đúng format của trang Đóng góp văn bản: cs_transcript (Việt-Anh) + vi_equivalent (Việt) + alignment (nghĩa từng từ tiếng Anh)
-const TEXT_HISTORY = [
-  { id: "TXT-204", category: "Hội thoại hàng ngày",
-    cs_transcript: "[vi]Chiều nay mình đi cà phê rồi [en]check-in [vi]chỗ mới nha.",
-    vi_equivalent: "[vi]Chiều nay mình đi cà phê rồi đánh dấu vị trí chỗ mới nha.",
-    alignment: [{ source: "check-in", target: "đánh dấu vị trí" }],
-    date: "05/09/2026 - 14:20",
-    reviews: [
-      { reviewer: "R1", decision: "approve", reason: "Câu tự nhiên, đạt yêu cầu." },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-  { id: "TXT-203", category: "Hội thoại hàng ngày",
-    cs_transcript: "[vi]Tối nay có [en]sale [vi]lớn, mình đi [en]shopping [vi]chút đi.",
-    vi_equivalent: "[vi]Tối nay có giảm giá lớn, mình đi mua sắm chút đi.",
-    alignment: [{ source: "sale", target: "giảm giá" }, { source: "shopping", target: "mua sắm" }],
-    date: "05/09/2026 - 10:10",
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-  { id: "TXT-202", category: "Hội thoại hàng ngày",
-    cs_transcript: "[vi]Nhớ [en]order [vi]đồ ăn trước khi hết giờ [en]happy hour [vi]nha.",
-    vi_equivalent: "[vi]Nhớ đặt đồ ăn trước khi hết giờ vàng nha.",
-    alignment: [{ source: "order", target: "đặt" }, { source: "happy hour", target: "giờ vàng" }],
-    date: "04/09/2026 - 09:30",
-    reviews: [
-      { reviewer: "R1", decision: "pending" },
-      { reviewer: "R2", decision: "pending" },
-      { reviewer: "R3", decision: "pending" },
-    ] },
-  { id: "TXT-201", category: "Công nghệ thông tin",
-    cs_transcript: "[vi]Bạn [en]deploy [vi]bản mới lên [en]server [vi]chưa vậy?",
-    vi_equivalent: "[vi]Bạn triển khai bản mới lên máy chủ chưa vậy?",
-    alignment: [{ source: "deploy", target: "triển khai" }, { source: "server", target: "máy chủ" }],
-    date: "03/09/2026 - 11:45",
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-  { id: "TXT-200", category: "Công nghệ thông tin",
-    cs_transcript: "[vi]Cái [en]bug [vi]này mình [en]fix [vi]xong rồi, chờ [en]review [vi]thôi.",
-    vi_equivalent: "[vi]Cái lỗi này mình sửa xong rồi, chờ xem xét thôi.",
-    alignment: [{ source: "bug", target: "lỗi" }, { source: "fix", target: "sửa" }, { source: "review", target: "xem xét" }],
-    date: "02/09/2026 - 16:15",
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-  { id: "TXT-199", category: "Công nghệ thông tin",
-    cs_transcript: "[vi]Nhớ [en]commit [vi]code rồi tạo [en]pull request [vi]cho mình duyệt.",
-    vi_equivalent: "[vi]Nhớ lưu thay đổi code rồi tạo yêu cầu hợp nhất cho mình duyệt.",
-    alignment: [{ source: "commit", target: "lưu thay đổi" }, { source: "pull request", target: "yêu cầu hợp nhất" }],
-    date: "01/09/2026 - 14:05",
-    reviews: [
-      { reviewer: "R1", decision: "reject", errorCategory: "Nhiều từ mượn", reason: "Câu chứa quá nhiều từ tiếng Anh liên tiếp." },
-      { reviewer: "R2", decision: "reject", errorCategory: "Nhiều từ mượn", reason: "Đồng ý, nên rút bớt từ mượn." },
-      { reviewer: "R3", decision: "pending" },
-    ] },
-  { id: "TXT-198", category: "Công nghệ thông tin",
-    cs_transcript: "[vi]Con [en]model [vi]này [en]train [vi]xong chưa, cho mình xem [en]result [vi]với.",
-    vi_equivalent: "[vi]Con mô hình này huấn luyện xong chưa, cho mình xem kết quả với.",
-    alignment: [{ source: "model", target: "mô hình" }, { source: "train", target: "huấn luyện" }, { source: "result", target: "kết quả" }],
-    date: "31/08/2026 - 20:30",
-    reviews: [
-      { reviewer: "R1", decision: "pending" },
-      { reviewer: "R2", decision: "pending" },
-      { reviewer: "R3", decision: "pending" },
-    ] },
-  { id: "TXT-197", category: "Giáo dục",
-    cs_transcript: "[vi]Hạn nộp [en]assignment [vi]là thứ sáu tuần này nha.",
-    vi_equivalent: "[vi]Hạn nộp bài tập là thứ sáu tuần này nha.",
-    alignment: [{ source: "assignment", target: "bài tập" }],
-    date: "30/08/2026 - 08:20",
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-  { id: "TXT-196", category: "Giáo dục",
-    cs_transcript: "[vi]Mai có buổi [en]workshop [vi]về kỹ năng [en]presentation [vi]đó.",
-    vi_equivalent: "[vi]Mai có buổi hội thảo về kỹ năng thuyết trình đó.",
-    alignment: [{ source: "workshop", target: "hội thảo" }, { source: "presentation", target: "thuyết trình" }],
-    date: "29/08/2026 - 13:10",
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-  { id: "TXT-195", category: "Giáo dục",
-    cs_transcript: "[vi]Nhớ ôn kỹ trước khi thi [en]final [vi]nhé, đề khó lắm.",
-    vi_equivalent: "[vi]Nhớ ôn kỹ trước khi thi cuối kỳ nhé, đề khó lắm.",
-    alignment: [{ source: "final", target: "cuối kỳ" }],
-    date: "28/08/2026 - 17:00",
-    reviews: [
-      { reviewer: "R1", decision: "reject", errorCategory: "Ngữ cảnh", reason: "Thiếu ngữ cảnh, câu chưa rõ môn thi." },
-      { reviewer: "R2", decision: "reject", errorCategory: "Ngữ cảnh", reason: "Đồng ý, nên nói rõ môn thi nào." },
-      { reviewer: "R3", decision: "approve" },
-    ] },
-];
-
 const FILTER_OPTIONS = [
   { value: "all", label: "Tất cả trạng thái" },
   { value: "Approved", label: "Đã duyệt" },
@@ -226,7 +123,6 @@ export default function ContributionHistory() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 10;
 
   const withStatus = useMemo(() => TEXT_HISTORY.map((it) => ({ ...it, status: resolveStatus(it.reviews) })), []);
 
@@ -250,11 +146,13 @@ export default function ContributionHistory() {
       )
     );
   }, [withStatus, statusFilter, categoryFilter, searchTerm]);
+  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
+  const [listRef, itemsPerPage] = useFitPageSize(10, [filteredData.length > 0], "tbody > tr");
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const pageItems = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="-mt-2 space-y-3 pb-4 text-left flex flex-col">
+    <div className="-mt-2 h-full min-h-0 flex flex-col gap-3 text-left">
 
       {/* THẺ THỐNG KÊ - ô cứng (không bấm để lọc) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
@@ -265,7 +163,7 @@ export default function ContributionHistory() {
       </div>
 
       {/* BẢNG */}
-      <div className="bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] flex flex-col overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-[#F0EEE6] space-y-3">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1 min-w-0">
@@ -311,7 +209,7 @@ export default function ContributionHistory() {
           </div>
         </div>
 
-        <div className="relative overflow-x-auto">
+        <div ref={listRef} className="relative flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
           <table className="w-full min-w-[1200px] table-fixed border-collapse">
             <thead>
               <tr className="bg-[#F7F5EF] text-[11px] uppercase tracking-wider text-[#9A9CA3] border-b border-[#E5E2D8] font-bold">

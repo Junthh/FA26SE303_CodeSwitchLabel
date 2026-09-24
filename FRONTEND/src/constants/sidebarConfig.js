@@ -4,9 +4,9 @@ import {
 } from 'lucide-react';
 import {
   SIDEBAR_BG_SPEAKER,
+  SIDEBAR_IDLE_TEXT_SPEAKER,
   SIDEBAR_BG_REVIEWER,
   TEXT_ON_DARK_SECONDARY,
-  SPEAKER_ACCENT,
   SPEAKER_ACCENT_ACTIVE_ICON,
   SPEAKER_ACCENT_SOFT_BG,
   REVIEWER_ACCENT,
@@ -17,21 +17,31 @@ import {
 export const SIDEBAR_CONFIG = {
   speaker: {
     background: SIDEBAR_BG_SPEAKER,
-    idleText: TEXT_ON_DARK_SECONDARY,
-    accent: SPEAKER_ACCENT,
+    idleText: SIDEBAR_IDLE_TEXT_SPEAKER,
+    // Vạch trái của mục đang chọn dùng bản sáng của accent để nổi trên nền xanh đá
+    accent: SPEAKER_ACCENT_ACTIVE_ICON,
     accentIcon: SPEAKER_ACCENT_ACTIVE_ICON,
     accentSoftBg: SPEAKER_ACCENT_SOFT_BG,
     logoVariant: 'light',
-    items: [
-      { name: 'Trang chủ', to: '/', icon: Home, end: true },
-      { name: 'Nhiệm vụ của tôi', to: '/review-text', icon: CheckSquare },
-      { name: 'Đóng góp văn bản', to: '/contribute', icon: PlusCircle },
+    // Menu chia nhóm, phẳng (không dropdown) - tên gọi hướng tới tình nguyện viên
+    sections: [
       {
-        name: 'Lịch sử của tôi',
-        icon: History,
-        children: [
-          { to: '/recording-history', label: 'Lịch sử ghi âm', icon: Headphones },
-          { to: '/contribution-history', label: 'Lịch sử đóng góp', icon: FileText },
+        title: 'Đóng góp',
+        items: [
+          { name: 'Trang chủ', to: '/', icon: Home, end: true },
+          // activeOn: vẫn sáng mục này khi đang ở các bước sau của luồng Duyệt -> Ghi âm -> Gửi
+          {
+            name: 'Câu chờ ghi âm', to: '/review-text', icon: CheckSquare,
+            activeOn: ['/record-speech', '/review-recording', '/submit-task'],
+          },
+          { name: 'Đóng góp văn bản', to: '/contribute', icon: PlusCircle },
+        ],
+      },
+      {
+        title: 'Của bạn',
+        items: [
+          { name: 'Lịch sử ghi âm', to: '/recording-history', icon: Headphones },
+          { name: 'Lịch sử đóng góp', to: '/contribution-history', icon: FileText },
         ],
       },
     ],
@@ -57,7 +67,9 @@ export const SIDEBAR_CONFIG = {
         icon: ClipboardCheck,
         children: [
           { to: '/reviewer/recording', label: 'Ghi âm', icon: Headphones },
-          { to: '/reviewer/contribution', label: 'Câu đóng góp', icon: FileText },
+          // Đề xuất câu = câu đóng góp + câu báo lỗi gộp chung 1 danh sách.
+          // Câu báo lỗi tạm dừng: route /reviewer/script vẫn giữ nhưng không hiện trên sidebar.
+          { to: '/reviewer/contribution', label: 'Đề xuất câu', icon: FileText },
         ],
       },
       {
@@ -65,7 +77,7 @@ export const SIDEBAR_CONFIG = {
         icon: History,
         children: [
           { to: '/reviewer/history-recording', label: 'Ghi âm', icon: Headphones },
-          { to: '/reviewer/history-contribution', label: 'Câu đóng góp', icon: FileText },
+          { to: '/reviewer/history-contribution', label: 'Đề xuất câu', icon: FileText },
         ],
       },
     ],

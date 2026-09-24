@@ -1,18 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Moon, Bell, ChevronDown, User, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { Bell, ChevronDown, ChevronRight, User, LogOut } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  SPEAKER_ACCENT as ACCENT,
-  SURFACE_HERO,
   TEXT_HEADING, TEXT_BODY,
-  TEXT_ON_DARK_PRIMARY,
   BORDER_LIGHT,
+  CHIP_DANGER_BG, CHIP_DANGER_TEXT,
 } from '../../constants/theme';
+import { HEADER_CONFIG } from '../../constants/headerConfig';
+import { SIDEBAR_CONFIG } from '../../constants/sidebarConfig';
+import { PAGE_TITLES } from '../../hooks/usePageTitle';
+import { MOCK_USERS } from '../../mocks/users';
 
-export default function Header() {
+/**
+ * Tìm mục sidebar "cha" của trang hiện tại dựa vào activeOn trong SIDEBAR_CONFIG
+ * (vd. /record-speech thuộc mục "Câu chờ ghi âm") - để luồng chỉ khai báo 1 lần ở sidebarConfig.
+ */
+function findParentItem(role, pathname) {
+  const items = (SIDEBAR_CONFIG[role]?.sections ?? []).flatMap((section) => section.items);
+  return items.find((item) => item.to === pathname || item.activeOn?.includes(pathname));
+}
+
+/**
+ * Header dùng chung cho mọi role (giống Sidebar): <Header role="speaker" /> / <Header role="reviewer" />.
+ * Bên trái là tiêu đề trang (hoặc đường dẫn khi đang trong một luồng), bên phải là thông báo + nút tài khoản
+ * (chỉ tên, không avatar vì người dùng không có ảnh đại diện). Nền trắng, ngăn với nội dung bằng đường kẻ mảnh.
+ */
+export default function Header({ role }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [nameHover, setNameHover] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -25,86 +41,107 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const { accent, profilePath } = HEADER_CONFIG[role];
+  // TODO: thay bằng user từ AuthContext (token / API /me) khi có API đăng nhập
+  const user = MOCK_USERS[role];
+
+  // TODO: chuyển vào AuthContext.logout() - gọi API đăng xuất, xoá token, xoá user rồi mới điều hướng
   const handleLogout = () => {
     setMenuOpen(false);
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
+
+  const pageTitle = PAGE_TITLES[pathname];
+  // Trang thuộc một luồng nhiều bước (mục sidebar có activeOn) -> hiện "Tên mục › Trang hiện tại"
+  const parentItem = findParentItem(role, pathname);
+  const inFlow = Boolean(parentItem?.activeOn?.length);
+  const flowParent = parentItem?.name;
 
   return (
     <header
-      className="w-full flex justify-end items-center gap-3 py-3.5 px-6 lg:px-8 shrink-0 z-20"
+      className="w-full h-[65px] flex justify-between items-center gap-3 px-6 lg:px-8 shrink-0 z-20"
       style={{ background: '#FFFFFF', borderBottom: `1px solid ${BORDER_LIGHT}` }}
     >
-      {/* Nút thông báo */}
-      <div className="relative">
-        <button
-          className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
-          style={{ border: `1px solid ${BORDER_LIGHT}`, color: TEXT_BODY }}
-        >
-          <Bell className="w-4 h-4" />
-        </button>
-        <span
-          className="absolute top-1.5 right-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white"
-          style={{ background: ACCENT }}
-        />
+      {/* Bên trái: tiêu đề trang / đường dẫn trong luồng ghi âm */}
+      <div className="min-w-0 flex items-center gap-1.5 text-[15px]">
+        {inFlow ? (
+          <>
+            <span className="font-semibold truncate" style={{ color: TEXT_BODY }}>{flowParent}</span>
+            <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#A3A6AE' }} />
+            <span className="font-bold truncate" style={{ color: TEXT_HEADING }}>{pageTitle}</span>
+          </>
+        ) : (
+          <span className="font-bold truncate" style={{ color: TEXT_HEADING }}>{pageTitle}</span>
+        )}
       </div>
 
-      {/* Thông tin tài khoản */}
-      <div className="relative" ref={menuRef}>
+      {/* Bên phải: thông báo + tài khoản */}
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Chuông trong khung viền 36px như header cũ để header không trông mỏng */}
         <button
-          onClick={() => setMenuOpen((v) => !v)}
-          onMouseEnter={() => setNameHover(true)}
-          onMouseLeave={() => setNameHover(false)}
-          className="flex items-center gap-2.5 pl-3 cursor-pointer group"
-          style={{ borderLeft: `1px solid ${BORDER_LIGHT}` }}
+          className="relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer hover:bg-black/[0.04]"
+          style={{ color: TEXT_BODY, border: `1px solid ${BORDER_LIGHT}` }}
+          aria-label="Thông báo"
         >
-          <div
-            className="w-9 h-9 rounded-lg font-bold flex items-center justify-center text-xs"
-            style={{ background: SURFACE_HERO, color: TEXT_ON_DARK_PRIMARY }}
-          >
-            ML
-          </div>
-          <div className="text-left leading-tight">
-            <p
-              className="text-[13px] font-bold transition-colors"
-              style={{ color: nameHover ? ACCENT : TEXT_HEADING }}
-            >
-              Nguyễn Mạnh Lực
-            </p>
-            <p className="text-[11px] font-semibold" style={{ color: TEXT_BODY }}>Speaker</p>
-          </div>
-          <ChevronDown
-            className={`w-3.5 h-3.5 transition-all ml-0.5 ${menuOpen ? 'rotate-180' : ''}`}
-            style={{ color: TEXT_BODY }}
+          <Bell className="w-4 h-4" />
+          <span
+            className="absolute top-1.5 right-1.5 w-[7px] h-[7px] rounded-full"
+            style={{ background: accent, boxShadow: '0 0 0 2px #FFFFFF' }}
           />
         </button>
 
-        {menuOpen && (
-          <div
-            className="absolute right-0 top-full mt-2 w-52 rounded-xl overflow-hidden z-30 py-1"
-            style={{
-              background: '#FFFFFF',
-              border: `1px solid ${BORDER_LIGHT}`,
-              boxShadow: '0 12px 28px rgba(16,17,20,0.14)',
-            }}
+        <span className="w-px h-5 mx-2" style={{ background: BORDER_LIGHT }} />
+
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="h-9 flex items-center gap-1.5 px-3 rounded-lg cursor-pointer transition-colors bg-black/[0.04] hover:bg-black/[0.07]"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
           >
-            <button
-              onClick={() => { setMenuOpen(false); navigate('/profile'); }}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-semibold hover:bg-[#F7F5EF] transition-colors text-left"
-              style={{ color: TEXT_HEADING }}
+            <span className="text-[13px] font-bold" style={{ color: TEXT_HEADING }}>{user.name}</span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+              style={{ color: TEXT_BODY }}
+            />
+          </button>
+
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-full mt-2 w-56 rounded-xl overflow-hidden z-30 p-1.5"
+              style={{
+                background: '#FFFFFF',
+                border: `1px solid ${BORDER_LIGHT}`,
+                boxShadow: '0 12px 28px rgba(16,17,20,0.14)',
+              }}
             >
-              <User className="w-4 h-4" style={{ color: TEXT_BODY }} /> Hồ sơ cá nhân
-            </button>
-            <div className="h-px mx-2 my-1" style={{ background: BORDER_LIGHT }} />
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-semibold hover:bg-[#FDEAEA] transition-colors text-left"
-              style={{ color: ACCENT }}
-            >
-              <LogOut className="w-4 h-4" /> Đăng xuất
-            </button>
-          </div>
-        )}
+              <div className="px-2.5 pt-2 pb-2.5 mb-1 border-b" style={{ borderColor: BORDER_LIGHT }}>
+                <p className="text-[13px] font-bold" style={{ color: TEXT_HEADING }}>{user.name}</p>
+                <p className="text-[11.5px] font-semibold mt-0.5" style={{ color: TEXT_BODY }}>{user.role}</p>
+              </div>
+              <button
+                role="menuitem"
+                onClick={() => { setMenuOpen(false); navigate(profilePath); }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-semibold hover:bg-black/[0.04] transition-colors text-left"
+                style={{ color: TEXT_HEADING }}
+              >
+                <User className="w-4 h-4" style={{ color: TEXT_BODY }} /> Hồ sơ cá nhân
+              </button>
+              <div className="h-px mx-1 my-1" style={{ background: BORDER_LIGHT }} />
+              <button
+                role="menuitem"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-semibold transition-colors text-left"
+                style={{ color: CHIP_DANGER_TEXT }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = CHIP_DANGER_BG; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <LogOut className="w-4 h-4" /> Đăng xuất
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

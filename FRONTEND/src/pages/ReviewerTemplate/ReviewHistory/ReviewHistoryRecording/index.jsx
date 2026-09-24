@@ -1,5 +1,7 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Pagination from "../../../../components/Pagination/Pagination";
+import useFitPageSize from "../../../../hooks/useFitPageSize";
+import WaveformInline from "../../../../components/AudioPlayer/WaveformInline";
 import {
   CheckCircle2,
   XCircle,
@@ -9,10 +11,7 @@ import {
   X,
   BarChart3,
   Search,
-  Play,
-  Pause,
 } from "lucide-react";
-import WaveSurfer from "wavesurfer.js";
 import {
   parseCodeSwitch,
   stripTags,
@@ -20,8 +19,8 @@ import {
 import {
   REVIEWER_ACCENT as ACCENT,
   AUDIO_PRIMARY,
-  AUDIO_WAVE_IDLE,
 } from "../../../../constants/theme";
+import { REVIEWED_RECORDINGS as AUDIO_HISTORY } from "../../../../mocks/reviewer/history";
 
 // 3 reviewer -> trạng thái tổng: >=2 từ chối = Rejected, >=2 duyệt = Approved, còn lại Pending
 function resolveStatus(reviews) {
@@ -125,217 +124,6 @@ function FeedbackButton({ status, votedCount, onClick, ariaLabel }) {
   );
 }
 
-// TODO: thay bằng dữ liệu thật từ API
-const AUDIO_HISTORY = [
-  {
-    id: "REC-091",
-    task: "Nhiệm vụ ghi âm hàng ngày",
-    speaker: "Nguyễn Mạnh Lực",
-    date: "08/09/2026 - 09:10",
-    csText: "[vi]Em nhớ [en]upload [vi]tài liệu trước [en]deadline [vi]nhé.",
-    viText: "Em nhớ tải lên tài liệu trước hạn chót nhé.",
-    csAudioUrl: "/review-recording-first-sample.m4a",
-    viAudioUrl: null,
-    csDuration: 5,
-    viDuration: 5,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-090",
-    task: "Chủ đề công nghệ & AI",
-    speaker: "Lê Hoàng Nam",
-    date: "07/09/2026 - 15:40",
-    csText:
-      "[vi]Cần [en]fix bug [vi]này gấp trước khi [en]release [vi]bản mới.",
-    viText: "Cần sửa lỗi này gấp trước khi phát hành bản mới.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 6,
-    viDuration: 6,
-    reviews: [
-      {
-        reviewer: "R1",
-        decision: "reject",
-        errorCategory: "Tạp âm",
-        reason: "Tạp âm ồn ào nền (Tiếng quạt).",
-      },
-      {
-        reviewer: "R2",
-        decision: "reject",
-        errorCategory: "Tạp âm",
-        reason: "Nghe rõ tiếng vọng, không đạt.",
-      },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-089",
-    task: "Thu âm hội thoại công sở",
-    speaker: "Phạm Thu Thảo",
-    date: "06/09/2026 - 13:45",
-    csText:
-      "[vi]Cuối tuần này cả [en]team [vi]đi [en]workshop [vi]ở Quận 1 nhé.",
-    viText: "Cuối tuần này cả nhóm đi hội thảo ở Quận 1 nhé.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 5,
-    viDuration: 6,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      {
-        reviewer: "R2",
-        decision: "reject",
-        errorCategory: "Phát âm sai",
-        reason: "Sai âm 'workshop'.",
-      },
-      { reviewer: "R3", decision: "pending" },
-    ],
-  },
-  {
-    id: "REC-088",
-    task: "Nhiệm vụ ghi âm cuối tuần",
-    speaker: "Trần Minh Tâm",
-    date: "06/09/2026 - 10:05",
-    csText: "[vi]Bạn đã [en]book [vi]lịch họp với khách hàng chưa?",
-    viText: "Bạn đã đặt lịch họp với khách hàng chưa?",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 4,
-    viDuration: 4,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-087",
-    task: "Chủ đề đặc biệt: Giáo dục",
-    speaker: "Nguyễn Mạnh Lực",
-    date: "05/09/2026 - 16:00",
-    csText: "[vi]Hạn nộp [en]assignment [vi]là cuối tuần này.",
-    viText: "Hạn nộp bài tập là cuối tuần này.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 4,
-    viDuration: 5,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-086",
-    task: "Nhiệm vụ ghi âm hàng ngày",
-    speaker: "Hoàng Quốc Bảo",
-    date: "04/09/2026 - 11:20",
-    csText: "[vi]Mô hình [en]AI [vi]này xử lý [en]prompt [vi]rất nhanh.",
-    viText: "Mô hình trí tuệ nhân tạo này xử lý câu lệnh rất nhanh.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 5,
-    viDuration: 6,
-    reviews: [
-      {
-        reviewer: "R1",
-        decision: "reject",
-        errorCategory: "Âm lượng",
-        reason: "Thu quá nhỏ.",
-      },
-      {
-        reviewer: "R2",
-        decision: "reject",
-        errorCategory: "Âm lượng",
-        reason: "Đồng ý, cần to hơn.",
-      },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-085",
-    task: "Thu âm hội thoại công sở",
-    speaker: "Trần Minh Tâm",
-    date: "03/09/2026 - 09:45",
-    csText: "[vi]Tối nay [en]order [vi]đồ ăn ở quán cũ nhé.",
-    viText: "Tối nay đặt đồ ăn ở quán cũ nhé.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 3,
-    viDuration: 4,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-084",
-    task: "Chủ đề công nghệ & AI",
-    speaker: "Lê Hoàng Nam",
-    date: "02/09/2026 - 10:22",
-    csText: "Thuật toán tối ưu hóa giúp giảm thiểu thời gian.",
-    viText: "Thuật toán tối ưu hóa giúp giảm thiểu thời gian.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 5,
-    viDuration: 5,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "pending" },
-      { reviewer: "R3", decision: "pending" },
-    ],
-  },
-  {
-    id: "REC-083",
-    task: "Nhiệm vụ ghi âm hàng ngày",
-    speaker: "Đặng Mai Phương",
-    date: "01/09/2026 - 08:30",
-    csText: "Cho tôi một ly cà phê đen không đường.",
-    viText: "Cho tôi một ly cà phê đen không đường.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 4,
-    viDuration: 4,
-    reviews: [
-      { reviewer: "R1", decision: "approve" },
-      { reviewer: "R2", decision: "approve" },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-  {
-    id: "REC-082",
-    task: "Thu âm hội thoại công sở",
-    speaker: "Phạm Thu Thảo",
-    date: "30/08/2026 - 17:15",
-    csText: "Mật khẩu của bạn đã được thay đổi thành công.",
-    viText: "Mật khẩu của bạn đã được thay đổi thành công.",
-    csAudioUrl: null,
-    viAudioUrl: null,
-    csDuration: 5,
-    viDuration: 5,
-    reviews: [
-      {
-        reviewer: "R1",
-        decision: "reject",
-        errorCategory: "Đọc vấp",
-        reason: "Đọc vấp từ 'thành công'.",
-      },
-      {
-        reviewer: "R2",
-        decision: "reject",
-        errorCategory: "Đọc vấp",
-        reason: "Đồng ý, vấp rõ.",
-      },
-      { reviewer: "R3", decision: "not_needed" },
-    ],
-  },
-];
-
 const FILTER_OPTIONS = [
   { value: "all", label: "Tất cả trạng thái" },
   { value: "Approved", label: "Đã duyệt" },
@@ -352,7 +140,6 @@ export default function ReviewHistoryRecording() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [taskFilter, setTaskFilter] = useState("all");
-  const itemsPerPage = 10;
 
   const withStatus = useMemo(
     () =>
@@ -389,12 +176,14 @@ export default function ReviewHistoryRecording() {
         ),
     );
   }, [withStatus, statusFilter, taskFilter, searchTerm]);
+  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
+  const [listRef, itemsPerPage] = useFitPageSize(10, [filteredData.length > 0], "tbody");
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const pageItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="-mt-2 space-y-3 text-left font-sans flex flex-col">
+    <div className="-mt-2 h-full min-h-0 flex flex-col gap-3 text-left font-sans">
       {/* THẺ THỐNG KÊ - ô cứng */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         <StatCard
@@ -430,7 +219,7 @@ export default function ReviewHistoryRecording() {
         />
       </div>
 
-      <section className="bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
+      <section className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-[#F0EEE6] space-y-3">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1 min-w-0">
@@ -479,7 +268,7 @@ export default function ReviewHistoryRecording() {
             </select>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div ref={listRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
           <table
             aria-label="Lịch sử kiểm duyệt ghi âm"
             className="w-full min-w-[1280px] table-fixed border-collapse text-left"
@@ -539,7 +328,7 @@ export default function ReviewHistoryRecording() {
                       const transcript =
                         variant === "cs" ? item.csText : item.viText;
                       const cellSpacing =
-                        variant === "cs" ? "pt-1 pb-0" : "pt-0 pb-1";
+                        variant === "cs" ? "pt-[3px] pb-0" : "pt-0 pb-[3px]";
                       return (
                         <tr key={variant}>
                           {variant === "cs" && (
@@ -566,7 +355,7 @@ export default function ReviewHistoryRecording() {
                             </>
                           )}
                           {variant === "cs" && (
-                            <td rowSpan={2} className="px-3 py-1">
+                            <td rowSpan={2} className="px-3 py-[3px]">
                               {/* Căn icon mắt về cùng một mép cột như bảng lịch sử câu đóng góp. */}
                               <div className="flex items-center gap-2">
                                 <div className="min-w-0 flex-1">
@@ -610,19 +399,11 @@ export default function ReviewHistoryRecording() {
                             </td>
                           )}
                           <td className={`px-3 ${cellSpacing}`}>
-                            <HistoryAudioRow
-                              variant={variant}
-                              demoDuration={
-                                variant === "cs"
-                                  ? item.csDuration
-                                  : item.viDuration
-                              }
-                              src={
-                                variant === "cs"
-                                  ? item.csAudioUrl
-                                  : item.viAudioUrl
-                              }
-                              transcript={transcript}
+                            <WaveformInline
+                              label={variant === "cs" ? "VI-EN" : "VI"}
+                              src={variant === "cs" ? item.csAudioUrl : item.viAudioUrl}
+                              demoSeed={`${variant}-${transcript}`}
+                              demoDuration={variant === "cs" ? item.csDuration : item.viDuration}
                             />
                           </td>
                           {variant === "cs" && (
@@ -651,7 +432,7 @@ export default function ReviewHistoryRecording() {
             )}
           </table>
         </div>
-        <div className="border-t border-[#F0EEE6] px-4 sm:px-5 grid sm:grid-cols-[1fr_auto_1fr] items-center">
+        <div className="shrink-0 border-t border-[#F0EEE6] px-4 sm:px-5 grid sm:grid-cols-[1fr_auto_1fr] items-center">
           <p className="text-[11px] text-[#9A9CA3] pt-2 sm:pt-0">
             Hiển thị {filteredData.length ? startIndex + 1 : 0}–
             {Math.min(startIndex + itemsPerPage, filteredData.length)} /{" "}
@@ -849,190 +630,6 @@ export default function ReviewHistoryRecording() {
             </div>
           );
         })()}
-    </div>
-  );
-}
-
-// Sóng âm mẫu cho dữ liệu demo; audio thật vẫn được WaveSurfer giải mã.
-function generatePeaks(seed, count = 60) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  let state = h || 1;
-  const rand = () => {
-    state ^= state << 13;
-    state >>>= 0;
-    state ^= state >> 17;
-    state ^= state << 5;
-    state >>>= 0;
-    return state / 4294967296;
-  };
-
-  const usableStart = Math.round(count * 0.08);
-  const usableEnd = count - Math.round(count * 0.08);
-  const usableLen = usableEnd - usableStart;
-
-  const peaks = new Array(count).fill(0);
-  const wordCount = 5 + Math.floor(rand() * 3); // 5-7 "từ"
-  const avgSlot = usableLen / wordCount;
-  let pos = usableStart;
-
-  for (let w = 0; w < wordCount && pos < usableEnd - 3; w++) {
-    const wordLen = Math.max(3, Math.round(avgSlot * (0.45 + rand() * 0.35)));
-    const peakAmp = 0.55 + rand() * 0.4;
-    for (let j = 0; j < wordLen && pos < usableEnd; j++, pos++) {
-      const envelope = Math.sin((j / wordLen) * Math.PI);
-      const jitter = 0.75 + rand() * 0.5;
-      peaks[pos] = Math.max(0.04, envelope * peakAmp * jitter);
-    }
-    pos += Math.max(1, Math.round(avgSlot * (0.15 + rand() * 0.25)));
-  }
-  for (let i = 0; i < count; i++)
-    if (peaks[i] === 0) peaks[i] = 0.03 + rand() * 0.04;
-
-  return peaks;
-}
-
-function HistoryAudioRow({ variant, src, transcript, demoDuration }) {
-  const containerRef = useRef(null);
-  const playerRef = useRef(null);
-  const [playback, setPlayback] = useState({
-    ready: false,
-    playing: false,
-    duration: 0,
-    error: false,
-  });
-  const label = variant === "cs" ? "VI-EN" : "VI";
-  const demoPeaks = useMemo(
-    () => generatePeaks(`${variant}-${transcript}`, 44),
-    [variant, transcript],
-  );
-
-  useEffect(() => {
-    if (!src || !containerRef.current) return;
-    let disposed = false;
-    const player = WaveSurfer.create({
-      container: containerRef.current,
-      height: 24,
-      waveColor: AUDIO_WAVE_IDLE,
-      progressColor: AUDIO_PRIMARY,
-      cursorWidth: 0,
-      barWidth: 2.5,
-      barGap: 1.5,
-      barRadius: 2,
-      normalize: true,
-    });
-    playerRef.current = player;
-    player.on("ready", () =>
-      setPlayback({
-        ready: true,
-        playing: false,
-        duration: player.getDuration(),
-        error: false,
-      }),
-    );
-    player.on("play", () => {
-      // Only one history recording plays at a time.
-      window.dispatchEvent(
-        new CustomEvent("history-audio-play", { detail: player }),
-      );
-      setPlayback((state) => ({ ...state, playing: true }));
-    });
-    player.on("pause", () =>
-      setPlayback((state) => ({ ...state, playing: false })),
-    );
-    player.on("finish", () =>
-      setPlayback((state) => ({ ...state, playing: false })),
-    );
-    const onOtherPlay = (event) => {
-      if (event.detail !== player) player.pause();
-    };
-    window.addEventListener("history-audio-play", onOtherPlay);
-    player.load(src).catch(() => {
-      if (!disposed)
-        setPlayback((state) => ({
-          ...state,
-          ready: false,
-          playing: false,
-          error: true,
-        }));
-    });
-    return () => {
-      disposed = true;
-      window.removeEventListener("history-audio-play", onOtherPlay);
-      player.destroy();
-      playerRef.current = null;
-    };
-  }, [src, variant]);
-
-  const togglePlay = () =>
-    playerRef.current
-      ?.playPause()
-      .catch(() =>
-        setPlayback((state) => ({ ...state, playing: false, error: true })),
-      );
-  const minutes = Math.floor(playback.duration / 60);
-  const seconds = Math.floor(playback.duration % 60)
-    .toString()
-    .padStart(2, "0");
-  return (
-    <div className="flex items-center gap-2 min-h-6">
-      <button
-        disabled={!playback.ready || playback.error}
-        onClick={togglePlay}
-        aria-label={`${playback.playing ? "Tạm dừng" : "Phát"} bản ${label}`}
-        title={!src ? "Sóng âm minh họa – chưa có file để phát" : undefined}
-        className="w-6 h-6 rounded-full shrink-0 inline-flex items-center justify-center text-white disabled:cursor-not-allowed cursor-pointer"
-      >
-        <span className="w-5 h-5 rounded-full inline-flex items-center justify-center" style={{ background: AUDIO_PRIMARY, boxShadow: "0 1px 3px rgba(37,99,235,0.2)" }}>
-        {playback.playing ? (
-          <Pause className="w-3 h-3" fill="currentColor" />
-        ) : (
-          <Play className="w-3 h-3 ml-0.5" fill="currentColor" />
-        )}
-        </span>
-      </button>
-      <div className="relative flex-1 min-w-0 h-6">
-        <div
-          ref={containerRef}
-          className={!src || playback.error ? "hidden" : "w-full"}
-        />
-        {!src && (
-          <svg
-            viewBox="0 0 176 28"
-            preserveAspectRatio="none"
-            className="w-full h-full"
-            role="img"
-            aria-label="Sóng âm mẫu"
-          >
-            {demoPeaks.map((peak, index) => {
-              const height = Math.max(2, peak * 26);
-              return (
-                <rect
-                  key={index}
-                  x={index * 4}
-                  y={(28 - height) / 2}
-                  width="2.5"
-                  height={height}
-                  rx="1"
-                  fill={AUDIO_WAVE_IDLE}
-                />
-              );
-            })}
-          </svg>
-        )}
-        {src && playback.error && (
-          <span className="h-full flex items-center text-[11px] text-[#9A9CA3]">
-            Không tải được audio
-          </span>
-        )}
-      </div>
-      <span className="font-mono text-[11px] text-[#9A9CA3] shrink-0 w-7">
-        {playback.ready
-          ? `${minutes}:${seconds}`
-          : !src
-            ? `0:${String(demoDuration).padStart(2, "0")}`
-            : "—"}
-      </span>
     </div>
   );
 }

@@ -1,38 +1,88 @@
 import { useState, useMemo } from 'react';
-import { Send, Check, X, ArrowRight } from 'lucide-react';
+import { Send, Check, Trash2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   SPEAKER_ACCENT as ACCENT,
   SUCCESS, WARNING,
+  CHIP_SUCCESS_TEXT,
+  CHIP_DANGER_BG, CHIP_DANGER_BORDER, CHIP_DANGER_TEXT,
   TEXT_HEADING, TEXT_BODY, TEXT_FAINT,
   BORDER_LIGHT, SURFACE_PAGE,
 } from '../../../constants/theme';
 
+// Màn hình cao >= 900px dùng biến thể [@media(min-height:900px)] để giãn ô nhập/khoảng cách; màn thấp (laptop 768px) giữ bản gọn vừa 1 màn hình
+// Dữ liệu lựa chọn - thêm chủ đề / số từ chỉ cần thêm phần tử ở đây, UI tự sinh theo mảng
+// TODO: có thể thay bằng dữ liệu từ API
 const CATEGORIES = ['Hội thoại hàng ngày', 'Công nghệ thông tin', 'Giáo dục'];
 const WORD_COUNT_OPTIONS = [1, 2, 3];
-const MAX_PAIRS = 3;
+// Số ô đối chiếu giữ chỗ sẵn = số từ lớn nhất có thể chọn, để đổi lựa chọn không làm giãn layout
+const MAX_PAIRS = Math.max(...WORD_COUNT_OPTIONS);
 
-/** Ô tick vuông dùng chung cho cả "Chủ đề" và "Số từ tiếng Anh" - single-select, hiển thị dạng checkbox thay vì chip/select. */
-function TickOption({ selected, label, onClick, className = '' }) {
+const emptyPairs = () => Array.from({ length: MAX_PAIRS }, () => ({ source: '', target: '' }));
+
+/**
+ * Kiểm tra 1 câu theo 3 tiêu chí dùng chung cho cả 2 câu: độ dài 5-20 từ, nhãn đúng loại câu, kết thúc bằng dấu câu.
+ * mixed = true: câu Việt-Anh (phải có cả [vi] và [en]); false: câu tiếng Việt (chỉ [vi], không có [en]).
+ */
+function evaluateSentence(text, mixed) {
+  const trimmed = text.trim();
+  const stripped = trimmed.replace(/\[(vi|en)\]/g, '').trim();
+  const words = stripped ? stripped.split(/\s+/).length : 0;
+  const tagOk = mixed
+    ? /\[vi\]/.test(trimmed) && /\[en\]/.test(trimmed)
+    : /\[vi\]/.test(trimmed) && !/\[en\]/.test(trimmed);
+  return {
+    empty: !trimmed,
+    words,
+    rules: [
+      { ok: words >= 5 && words <= 20, label: '5-20 từ' },
+      { ok: tagOk, label: mixed ? 'Có [vi] và [en]' : 'Chỉ có [vi]' },
+      { ok: /[.!?…]$/.test(stripped), label: 'Kết thúc . ! ?' },
+    ],
+  };
+}
+
+/** 1 tiêu chí - 3 trạng thái: chưa gõ (○ xám), đạt (✓ xanh), đã gõ nhưng chưa đạt (! đỏ). */
+function RuleItem({ ok, touched, label }) {
+  const bad = touched && !ok;
+  return (
+    <span
+      className="flex items-center gap-1 text-[11.5px] font-medium whitespace-nowrap"
+      style={{ color: ok ? CHIP_SUCCESS_TEXT : bad ? CHIP_DANGER_TEXT : TEXT_FAINT }}
+    >
+      <span
+        className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold"
+        style={{
+          background: ok ? SUCCESS : '#FFFFFF',
+          border: ok ? 'none' : `1.5px solid ${bad ? CHIP_DANGER_TEXT : '#C7C4B8'}`,
+        }}
+      >
+        {ok ? <Check className="w-2 h-2 text-white" strokeWidth={4} /> : bad ? '!' : null}
+      </span>
+      {label}
+    </span>
+  );
+}
+
+/** Radio có viền quanh từng ô - single-select nên dùng ô tròn thay vì ô tick vuông. */
+function RadioOption({ selected, label, onClick }) {
   return (
     <button
       type="button"
+      role="radio"
       onClick={onClick}
-      aria-pressed={selected}
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${className}`}
+      aria-checked={selected}
+      className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-left transition-all"
       style={{
         background: selected ? `${ACCENT}0D` : '#FFFFFF',
         border: `1.5px solid ${selected ? ACCENT : BORDER_LIGHT}`,
       }}
     >
       <span
-        className="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 transition-all"
-        style={{
-          background: selected ? ACCENT : '#FFFFFF',
-          border: `1.5px solid ${selected ? ACCENT : '#C7C4B8'}`,
-        }}
+        className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all"
+        style={{ border: `1.5px solid ${selected ? ACCENT : '#C7C4B8'}` }}
       >
-        {selected && <Check className="w-3 h-3 text-white" strokeWidth={3.5} />}
+        {selected && <span className="w-2 h-2 rounded-full" style={{ background: ACCENT }} />}
       </span>
       <span className="text-[13px] font-semibold" style={{ color: selected ? TEXT_HEADING : TEXT_BODY }}>
         {label}
@@ -41,40 +91,49 @@ function TickOption({ selected, label, onClick, className = '' }) {
   );
 }
 
+/** Nhóm radio xếp dọc, sinh theo mảng options. */
+function RadioGroup({ label, options, value, onChange, renderLabel = (o) => o }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="min-w-0">
+      <p className="text-[12.5px] font-bold mb-1.5" style={{ color: TEXT_HEADING }}>{label}</p>
+      <div className="flex flex-col gap-1 [@media(min-height:900px)]:gap-1.5">
+        {options.map((o) => (
+          <RadioOption key={o} selected={value === o} label={renderLabel(o)} onClick={() => onChange(o)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ContributeText() {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [wordCount, setWordCount] = useState(2);
   const [csTranscript, setCsTranscript] = useState('');
   const [viEquivalent, setViEquivalent] = useState('');
-  // Luôn giữ mảng 3 phần tử, chỉ dùng slice(0, wordCount) khi render/gửi - tránh phải resize mảng khi đổi wordCount
-  const [pairs, setPairs] = useState(Array.from({ length: MAX_PAIRS }, () => ({ source: '', target: '' })));
+  // Luôn giữ mảng MAX_PAIRS phần tử, chỉ dùng slice(0, wordCount) khi render/gửi - tránh phải resize mảng khi đổi wordCount
+  const [pairs, setPairs] = useState(emptyPairs);
 
   const updatePair = (index, field, value) => {
     setPairs((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
-  const checks = useMemo(() => {
-    const csTrimmed = csTranscript.trim();
-    const csStripped = csTrimmed.replace(/\[(vi|en)\]/g, '').trim();
-    const words = csStripped ? csStripped.split(/\s+/) : [];
+  const cs = useMemo(() => evaluateSentence(csTranscript, true), [csTranscript]);
+  const vi = useMemo(() => evaluateSentence(viEquivalent, false), [viEquivalent]);
+  const activePairs = pairs.slice(0, wordCount);
+  const pairsOk = activePairs.every((p) => p.source.trim() && p.target.trim());
+  const pairsTouched = activePairs.some((p) => p.source || p.target);
 
-    const viTrimmed = viEquivalent.trim();
-    const viStripped = viTrimmed.replace(/\[(vi|en)\]/g, '').trim();
+  const sentenceRules = [...cs.rules, ...vi.rules];
+  const totalRules = sentenceRules.length + 1;
+  const passedCount = sentenceRules.filter((r) => r.ok).length + (pairsOk ? 1 : 0);
+  const allValid = passedCount === totalRules;
+  const hasContent = csTranscript || viEquivalent || pairs.some((pair) => pair.source || pair.target);
 
-    const activePairs = pairs.slice(0, wordCount);
-    const pairsOk = activePairs.every((p) => p.source.trim() && p.target.trim());
-
-    return {
-      wordCount: words.length,
-      lengthOk: words.length >= 5 && words.length <= 20,
-      mixedOk: /\[vi\]/.test(csTrimmed) && /\[en\]/.test(csTrimmed),
-      endOk: /[.!?…]$/.test(csStripped),
-      viOk: /\[vi\]/.test(viTrimmed) && viStripped.length > 0,
-      pairsOk,
-    };
-  }, [csTranscript, viEquivalent, pairs, wordCount]);
-
-  const allValid = checks.lengthOk && checks.mixedOk && checks.endOk && checks.viOk && checks.pairsOk;
+  const resetForm = () => {
+    setCsTranscript('');
+    setViEquivalent('');
+    setPairs(emptyPairs());
+  };
 
   const handleSubmit = () => {
     if (!allValid) return;
@@ -95,192 +154,155 @@ export default function ContributeText() {
     // TODO: nối API gửi đóng góp thật, thay cho console.log mô phỏng này
     console.log('Payload gửi API (mẫu, xoá console.log này khi nối API thật):', payload);
     toast.success('Đã gửi đóng góp!', { description: 'Câu của bạn đang chờ duyệt.' });
-
-    setCsTranscript('');
-    setViEquivalent('');
-    setPairs(Array.from({ length: MAX_PAIRS }, () => ({ source: '', target: '' })));
+    resetForm();
   };
 
-  const rules = [
-    { ok: checks.lengthOk, label: 'Câu Việt-Anh dài 5-20 từ', hint: `${checks.wordCount} từ` },
-    { ok: checks.mixedOk, label: 'Câu Việt-Anh có gắn nhãn [vi] và [en]', hint: 'bắt buộc' },
-    { ok: checks.endOk, label: 'Câu Việt-Anh kết thúc bằng dấu câu', hint: '. ! ?' },
-    { ok: checks.viOk, label: 'Có câu tiếng Việt tương đương', hint: '[vi]...' },
-    { ok: checks.pairsOk, label: `Điền đủ ${wordCount} cặp từ đối chiếu`, hint: `${wordCount} cặp` },
-  ];
+  const fieldStyle = { color: TEXT_HEADING, background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` };
+  const focusField = (e) => { e.target.style.borderColor = ACCENT; e.target.style.background = '#FFFFFF'; };
+  const blurField = (e) => { e.target.style.borderColor = BORDER_LIGHT; e.target.style.background = SURFACE_PAGE; };
+
+  // Ô câu: nhãn + bộ đếm từ phía trên, textarea, 3 tiêu chí ngay bên dưới
+  const sentenceField = (id, label, value, setValue, placeholder, result) => (
+    <div>
+      <div className="flex items-baseline justify-between mb-1.5 [@media(min-height:900px)]:mb-2">
+        <label htmlFor={id} className="text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>{label}</label>
+        <span
+          className="font-mono text-[11.5px] font-semibold"
+          style={{ color: result.rules[0].ok ? CHIP_SUCCESS_TEXT : result.words > 20 ? WARNING : TEXT_FAINT }}
+        >
+          {result.words}/20 từ
+        </span>
+      </div>
+      <textarea
+        id={id}
+        rows={2}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className="block w-full h-11 [@media(min-height:900px)]:h-[72px] px-3 py-2 text-[13.5px] leading-relaxed font-medium font-mono rounded-xl outline-none resize-none transition-all placeholder:font-normal"
+        style={fieldStyle}
+        onFocus={focusField}
+        onBlur={blurField}
+      />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 [@media(min-height:900px)]:mt-2">
+        {result.rules.map((r) => (
+          <RuleItem key={r.label} ok={r.ok} touched={!result.empty} label={r.label} />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-6xl mx-auto -mt-2 text-left font-sans space-y-3">
+    <div className="max-w-4xl mx-auto -mt-2 text-left font-sans space-y-3">
 
       <div>
         <h1 className="text-[22px] font-bold tracking-tight" style={{ color: TEXT_HEADING }}>Đóng góp văn bản</h1>
         <p className="text-[13px] mt-1" style={{ color: TEXT_BODY }}>
           Viết câu tiếng Việt có xen từ tiếng Anh, gắn thẻ{' '}
-          <span className="font-mono font-semibold" style={{ color: TEXT_HEADING }}>[vi]</span> và{' '}
+          <span className="font-mono font-semibold" style={{ color: TEXT_HEADING }}>[vi]</span> /{' '}
           <span className="font-mono font-semibold" style={{ color: TEXT_HEADING }}>[en]</span> trước mỗi đoạn,
           kèm câu tiếng Việt tương đương và nghĩa của từng từ tiếng Anh.
         </p>
       </div>
 
+      {/* Form dọc: Chủ đề | Số từ → 2 câu → Đối chiếu từ */}
       <div className="rounded-2xl overflow-hidden" style={{ background: '#FFFFFF', border: `1px solid ${BORDER_LIGHT}`, boxShadow: '0 1px 3px rgba(16,17,20,0.04)' }}>
 
-        {/* Chủ đề - dạng tick box thay vì select/chip */}
-        <div className="px-4 sm:px-5 pt-2">
-          <label className="block text-[12.5px] font-bold mb-1.5" style={{ color: TEXT_HEADING }}>Chủ đề của câu</label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {CATEGORIES.map((c) => (
-              <TickOption key={c} selected={category === c} label={c} onClick={() => setCategory(c)} className="flex-1" />
-            ))}
-          </div>
+        {/* Chủ đề | Số từ tiếng Anh - 2 nhóm cạnh nhau, mỗi nhóm xếp dọc */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 px-4 sm:px-5 py-2 [@media(min-height:900px)]:py-3.5 border-b" style={{ borderColor: BORDER_LIGHT }}>
+          <RadioGroup label="Chủ đề của câu" options={CATEGORIES} value={category} onChange={setCategory} />
+          {/* Số từ tiếng Anh - quyết định số cặp đối chiếu bên dưới */}
+          <RadioGroup
+            label="Số từ tiếng Anh trong câu"
+            options={WORD_COUNT_OPTIONS}
+            value={wordCount}
+            onChange={setWordCount}
+            renderLabel={(n) => `${n} từ tiếng Anh`}
+          />
         </div>
 
-        {/* Số từ tiếng Anh trong câu - sinh ra đúng số ô đối chiếu bên dưới */}
-        <div className="px-4 sm:px-5 pt-2">
-          <label className="block text-[12.5px] font-bold mb-1.5" style={{ color: TEXT_HEADING }}>Số từ tiếng Anh trong câu</label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {WORD_COUNT_OPTIONS.map((n) => (
-              <TickOption key={n} selected={wordCount === n} label={`${n} từ tiếng Anh`} onClick={() => setWordCount(n)} className="flex-1 justify-center" />
-            ))}
-          </div>
+        <div className="px-4 sm:px-5 py-2 space-y-2 [@media(min-height:900px)]:py-3.5 [@media(min-height:900px)]:space-y-3 border-b" style={{ borderColor: BORDER_LIGHT }}>
+          {sentenceField('contribution-cs', 'Câu Việt-Anh', csTranscript, setCsTranscript,
+            'Ví dụ: [vi]Bạn gửi file này qua [en]email [vi]giúp mình nhé.', cs)}
+          {sentenceField('contribution-vi', 'Câu tiếng Việt tương đương', viEquivalent, setViEquivalent,
+            'Ví dụ: [vi]Bạn gửi file này qua thư điện tử giúp mình nhé.', vi)}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4 sm:px-5 pt-3">
-        {/* Ô câu Việt-Anh có nhãn [vi]/[en] */}
-        <div className="min-w-0">
+        {/* Các cặp từ đối chiếu Anh-Việt - luôn giữ chỗ đủ MAX_PAIRS dòng; dòng vượt quá wordCount bị ẩn nhưng vẫn chiếm chỗ */}
+        <div className="px-4 sm:px-5 py-2 [@media(min-height:900px)]:py-3.5">
           <div className="flex items-baseline justify-between mb-1.5">
-            <label htmlFor="contribution-cs" className="text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>Câu Việt-Anh</label>
-            <span
-              className="font-mono text-[12px] font-semibold"
-              style={{ color: checks.lengthOk ? SUCCESS : checks.wordCount > 20 ? WARNING : TEXT_FAINT }}
-            >
-              {checks.wordCount}/20 từ
-            </span>
+            <p className="text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>
+              Nghĩa tiếng Việt của {wordCount === 1 ? 'từ' : 'các từ'} tiếng Anh
+            </p>
+            <RuleItem ok={pairsOk} touched={pairsTouched} label={`Điền đủ ${wordCount} cặp`} />
           </div>
-          <textarea
-            id="contribution-cs"
-            rows={3}
-            value={csTranscript}
-            onChange={(e) => setCsTranscript(e.target.value)}
-            placeholder="Ví dụ: [vi]Bạn gửi file này qua [en]email [vi]giúp mình nhé."
-            className="block w-full h-20 p-3 text-[14px] leading-relaxed font-medium font-mono rounded-xl outline-none resize-none transition-all placeholder:font-normal"
-            style={{ color: TEXT_HEADING, background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` }}
-            onFocus={(e) => { e.target.style.borderColor = ACCENT; e.target.style.background = '#FFFFFF'; }}
-            onBlur={(e) => { e.target.style.borderColor = BORDER_LIGHT; e.target.style.background = SURFACE_PAGE; }}
-          />
-        </div>
-
-        {/* Ô câu tiếng Việt tương đương - dạng [vi] */}
-        <div className="min-w-0">
-          <label htmlFor="contribution-vi" className="block text-[12.5px] font-bold mb-1.5" style={{ color: TEXT_HEADING }}>Câu tiếng Việt tương đương</label>
-          <textarea
-            id="contribution-vi"
-            rows={2}
-            value={viEquivalent}
-            onChange={(e) => setViEquivalent(e.target.value)}
-            placeholder="Ví dụ: [vi]Bạn gửi file này qua thư điện tử giúp mình nhé."
-            className="block w-full h-20 p-3 text-[14px] leading-relaxed font-medium font-mono rounded-xl outline-none resize-none transition-all placeholder:font-normal"
-            style={{ color: TEXT_HEADING, background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` }}
-            onFocus={(e) => { e.target.style.borderColor = ACCENT; e.target.style.background = '#FFFFFF'; }}
-            onBlur={(e) => { e.target.style.borderColor = BORDER_LIGHT; e.target.style.background = SURFACE_PAGE; }}
-          />
-        </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mx-4 sm:mx-5 mt-3 py-2 border-t" style={{ borderColor: BORDER_LIGHT }}>
-        {/* Các cặp từ đối chiếu Anh-Việt - số lượng sinh theo wordCount đã chọn */}
-        <div className="min-w-0 space-y-2">
-          <label className="block text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>
-            Nghĩa tiếng Việt của {wordCount === 1 ? 'từ' : 'các từ'} tiếng Anh
-          </label>
-          <div className="space-y-2 md:min-h-[130px]">
-          {Array.from({ length: wordCount }).map((_, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                type="text"
-                aria-label={`Từ tiếng Anh ${i + 1}`}
-                value={pairs[i].source}
-                onChange={(e) => updatePair(i, 'source', e.target.value)}
-                placeholder="từ tiếng Anh"
-                className="min-w-0 flex-1 px-3 py-2 text-[13.5px] font-mono font-semibold rounded-lg outline-none transition-all"
-                style={{ color: ACCENT, background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` }}
-                onFocus={(e) => { e.target.style.borderColor = ACCENT; }}
-                onBlur={(e) => { e.target.style.borderColor = BORDER_LIGHT; }}
-              />
-              <ArrowRight className="w-4 h-4 shrink-0" style={{ color: TEXT_FAINT }} />
-              <input
-                type="text"
-                aria-label={`Nghĩa tiếng Việt ${i + 1}`}
-                value={pairs[i].target}
-                onChange={(e) => updatePair(i, 'target', e.target.value)}
-                placeholder="nghĩa tiếng Việt"
-                className="min-w-0 flex-1 px-3 py-2 text-[13.5px] font-medium rounded-lg outline-none transition-all"
-                style={{ color: TEXT_HEADING, background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` }}
-                onFocus={(e) => { e.target.style.borderColor = ACCENT; }}
-                onBlur={(e) => { e.target.style.borderColor = BORDER_LIGHT; }}
-              />
-            </div>
-          ))}
+          <div className="space-y-1.5 [@media(min-height:900px)]:space-y-2">
+            {pairs.map((pair, i) => {
+              const active = i < wordCount;
+              return (
+                <div key={i} className={`flex items-center gap-2 ${active ? '' : 'invisible'}`} aria-hidden={!active}>
+                  <input
+                    type="text"
+                    aria-label={`Từ tiếng Anh ${i + 1}`}
+                    value={pair.source}
+                    disabled={!active}
+                    onChange={(e) => updatePair(i, 'source', e.target.value)}
+                    placeholder="từ tiếng Anh"
+                    className="min-w-0 flex-1 px-3 py-1.5 text-[13.5px] font-mono font-semibold rounded-lg outline-none transition-all"
+                    style={{ ...fieldStyle, color: ACCENT }}
+                    onFocus={focusField}
+                    onBlur={blurField}
+                  />
+                  <ArrowRight className="w-4 h-4 shrink-0" style={{ color: TEXT_FAINT }} />
+                  <input
+                    type="text"
+                    aria-label={`Nghĩa tiếng Việt ${i + 1}`}
+                    value={pair.target}
+                    disabled={!active}
+                    onChange={(e) => updatePair(i, 'target', e.target.value)}
+                    placeholder="nghĩa tiếng Việt"
+                    className="min-w-0 flex-1 px-3 py-1.5 text-[13.5px] font-medium rounded-lg outline-none transition-all"
+                    style={fieldStyle}
+                    onFocus={focusField}
+                    onBlur={blurField}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
-      <aside className="min-w-0 border-t pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-4" style={{ borderColor: BORDER_LIGHT }}>
-        {/* Checklist kiểm tra động */}
-        <div className="space-y-1">
-          <p className="text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>Tiêu chuẩn cần đạt</p>
-          {rules.map((r) => (
-            <div key={r.label} className="flex items-start gap-2">
-              <span
-                className="w-4 h-4 mt-0.5 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: r.ok ? SUCCESS : '#FFFFFF', border: r.ok ? 'none' : '1.5px solid #C7C4B8' }}
-              >
-                {r.ok && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3.5} />}
-              </span>
-              <span className="text-[12px] font-medium leading-5" style={{ color: r.ok ? TEXT_HEADING : TEXT_FAINT }}>
-                {r.label}
-              </span>
-              <span className="font-mono text-[11px] ml-auto shrink-0 leading-5" style={{ color: TEXT_FAINT }}>{r.hint}</span>
-            </div>
-          ))}
-          <p className="text-[11.5px] pt-1 leading-relaxed" style={{ color: TEXT_FAINT }}>
-            Ngoài ra câu cần tự nhiên, đúng ngữ cảnh và không chứa nội dung nhạy cảm — phần này sẽ do đội duyệt kiểm tra.
-          </p>
-        </div>
-      </aside>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-2 border-t" style={{ background: SURFACE_PAGE, borderColor: BORDER_LIGHT }}>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="text-[12px] font-semibold" aria-live="polite" style={{ color: allValid ? SUCCESS : TEXT_BODY }}>
-            Đã đạt {rules.filter((rule) => rule.ok).length}/{rules.length} tiêu chuẩn
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-2 [@media(min-height:900px)]:py-3 border-t" style={{ background: SURFACE_PAGE, borderColor: BORDER_LIGHT }}>
+          <span className="text-[12px] font-semibold" aria-live="polite" style={{ color: allValid ? CHIP_SUCCESS_TEXT : TEXT_BODY }}>
+            Đã đạt {passedCount}/{totalRules} tiêu chuẩn
           </span>
-          {(csTranscript || viEquivalent || pairs.some((pair) => pair.source || pair.target)) && (
+          <div className="flex items-center gap-2.5 shrink-0">
+            {hasContent && (
+              <button
+                onClick={resetForm}
+                className="px-3.5 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-1.5 transition-all"
+                style={{ background: '#FFFFFF', border: `1px solid ${BORDER_LIGHT}`, color: TEXT_HEADING }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = CHIP_DANGER_BORDER; e.currentTarget.style.background = CHIP_DANGER_BG; e.currentTarget.style.color = CHIP_DANGER_TEXT; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = BORDER_LIGHT; e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = TEXT_HEADING; }}
+              >
+                <Trash2 className="w-4 h-4" /> Xoá hết
+              </button>
+            )}
             <button
-              onClick={() => {
-                setCsTranscript('');
-                setViEquivalent('');
-                setPairs(Array.from({ length: MAX_PAIRS }, () => ({ source: '', target: '' })));
+              onClick={handleSubmit}
+              disabled={!allValid}
+              className="flex-1 sm:flex-none px-4 py-2.5 text-white font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all"
+              style={{
+                background: allValid ? ACCENT : '#DCD9CE',
+                cursor: allValid ? 'pointer' : 'not-allowed',
+                boxShadow: allValid ? `0 10px 24px ${ACCENT}40` : 'none',
               }}
-              className="text-[12px] font-semibold flex items-center gap-1 transition-colors"
-              style={{ color: TEXT_BODY }}
             >
-              <X className="w-3.5 h-3.5" /> Xoá toàn bộ nội dung
+              <Send className="w-4 h-4" />
+              {allValid ? 'Gửi đóng góp để duyệt' : 'Hoàn thành các tiêu chuẩn để gửi'}
             </button>
-          )}
+          </div>
         </div>
-      <button
-        onClick={handleSubmit}
-        disabled={!allValid}
-        className="w-full sm:w-auto shrink-0 px-4 py-2.5 text-white font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all"
-        style={{
-          background: allValid ? ACCENT : '#DCD9CE',
-          cursor: allValid ? 'pointer' : 'not-allowed',
-          boxShadow: allValid ? `0 10px 24px ${ACCENT}40` : 'none',
-        }}
-      >
-        <Send className="w-4 h-4" />
-        {allValid ? 'Gửi đóng góp để duyệt' : 'Hoàn thành các tiêu chuẩn để gửi'}
-      </button>
-      </div>
       </div>
     </div>
   );

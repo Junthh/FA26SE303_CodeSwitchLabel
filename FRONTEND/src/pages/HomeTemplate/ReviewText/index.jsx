@@ -27,6 +27,7 @@ import {
   CHIP_DANGER_TEXT,
   DANGER,
 } from "../../../constants/theme";
+import { ACTIVE_TASKS, CURRENT_SENTENCE } from "../../../mocks/speaker/tasks";
 
 const REPORT_REASONS = [
   { id: "grammar", label: "Sai ngữ pháp", desc: "Câu sai cấu trúc, ngữ pháp" },
@@ -50,61 +51,13 @@ export default function ReviewText() {
   const currentTaskId = searchParams.get("taskId");
   const isJustSubmitted = searchParams.get("success") === "true";
 
-  const [activeTasks] = useState([
-    {
-      id: "task-1",
-      title: "Nhiệm vụ ghi âm hàng ngày",
-      category: "Hội thoại hàng ngày",
-      completed: 45,
-      goal: 100,
-      deadline: "25/05/2025",
-    },
-    {
-      id: "task-2",
-      title: "Nhiệm vụ ghi âm cuối tuần (Gấp)",
-      category: "Công sở & Giao tiếp",
-      completed: 16,
-      goal: 80,
-      deadline: "28/05/2025",
-    },
-    {
-      id: "task-4",
-      title: "Chủ đề công nghệ & AI",
-      category: "Công nghệ & AI",
-      completed: 135,
-      goal: 150,
-      deadline: "10/06/2025",
-    },
-  ]);
+  const [activeTasks] = useState(ACTIVE_TASKS);
 
   const [selectedTask, setSelectedTask] = useState(
     () => activeTasks.find((t) => t.id === currentTaskId) || activeTasks[0],
   );
 
-  const [sentence, setSentence] = useState({
-    id: "2110000",
-    domain: "IT/Technology",
-    cs_transcript:
-      "[vi]Em nên [en]scan [vi]tài liệu này rồi gửi qua [en]email [vi]cho tôi.",
-    vi_equivalent:
-      "[vi]Em nên quét tài liệu này rồi gửi qua thư điện tử cho tôi.",
-    alignment: [
-      {
-        source: "scan",
-        source_lang: "en",
-        target: "quét",
-        target_lang: "vi",
-        relation: "semantic_equivalent",
-      },
-      {
-        source: "email",
-        source_lang: "en",
-        target: "thư điện tử",
-        target_lang: "vi",
-        relation: "semantic_equivalent",
-      },
-    ],
-  });
+  const [sentence, setSentence] = useState(CURRENT_SENTENCE);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editCs, setEditCs] = useState(sentence.cs_transcript);
@@ -167,7 +120,7 @@ export default function ReviewText() {
   const barColor = percent >= 50 ? SUCCESS : WARNING;
 
   return (
-    <div className="pb-12 text-left max-w-3xl mx-auto font-sans">
+    <div className="[@media(min-height:900px)]:pb-12 text-left max-w-3xl mx-auto font-sans">
       <TaskStepper currentStep={1} />
 
       {/* THANH NHIỆM VỤ */}
@@ -241,7 +194,7 @@ export default function ReviewText() {
       </div>
 
       {/* THẺ CẶP CÂU VĂN */}
-      <div className="relative mt-8">
+      <div className="relative mt-6 [@media(min-height:900px)]:mt-8">
         <div
           className="absolute inset-x-2 -top-3 h-full rounded-[24px] rotate-[-1.5deg]"
           style={{ background: "#EFEDE3", border: "1px solid #E2DFD3" }}
@@ -260,8 +213,8 @@ export default function ReviewText() {
         >
           <div className="h-1.5 w-full" style={{ background: ACCENT }} />
 
-          <div className="px-6 sm:px-10 pt-6 pb-8">
-            <div className="flex items-center justify-end gap-2.5 mb-6">
+          <div className="px-6 sm:px-10 pt-4 pb-6 [@media(min-height:900px)]:pt-6 [@media(min-height:900px)]:pb-8">
+            <div className="flex items-center justify-end gap-2.5 mb-3 [@media(min-height:900px)]:mb-6">
               <div className="flex items-end gap-[2.5px] h-3.5">
                 <span
                   className="w-[2.5px] h-[5px] rounded-[1px]"
@@ -311,7 +264,7 @@ export default function ReviewText() {
               </h2>
 
               <div
-                className="w-12 h-px mx-auto my-5"
+                className="w-12 h-px mx-auto my-3 [@media(min-height:900px)]:my-5"
                 style={{ background: BORDER_LIGHT }}
               />
 
@@ -335,7 +288,7 @@ export default function ReviewText() {
       {/* CTA chính */}
       <button
         onClick={handleNextStep}
-        className="w-full mt-4 py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all"
+        className="w-full mt-3 py-3.5 [@media(min-height:900px)]:mt-4 [@media(min-height:900px)]:py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all"
         style={{
           background: ACCENT,
           color: "#FFFFFF",
@@ -346,7 +299,7 @@ export default function ReviewText() {
       </button>
 
       {/* Hành động phụ */}
-      <div className="flex items-center justify-center gap-3.5 flex-wrap mt-5">
+      <div className="flex items-center justify-center gap-3.5 flex-wrap mt-3 [@media(min-height:900px)]:mt-5">
         <button
           onClick={handleSkip}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold hover:opacity-85 active:scale-[0.98] transition-all"

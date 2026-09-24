@@ -11,13 +11,13 @@ import { useLocation } from 'react-router-dom';
 
 const SITE_NAME = 'CodeSwitchLabel';
 
-const PAGE_TITLES = {
+export const PAGE_TITLES = {
   // Speaker
   '/': 'Trang chủ',
   '/review-text': 'Duyệt văn bản',
   '/record-speech': 'Ghi âm',
   '/review-recording': 'Nghe lại',
-  '/submit-task': 'Nộp bài',
+  '/submit-task': 'Gửi bản ghi',
   '/contribute': 'Đóng góp văn bản',
   '/profile': 'Hồ sơ cá nhân',
   '/recording-history': 'Lịch sử ghi âm',
@@ -27,9 +27,10 @@ const PAGE_TITLES = {
   '/reviewer': 'Tổng quan & Tiến độ',
   '/reviewer/task': 'Nhiệm vụ',
   '/reviewer/recording': 'Kiểm duyệt ghi âm',
-  '/reviewer/contribution': 'Kiểm duyệt câu đóng góp',
+  '/reviewer/contribution': 'Đề xuất câu',
+  '/reviewer/script': 'Kiểm duyệt câu lỗi',
   '/reviewer/history-recording': 'Lịch sử kiểm duyệt ghi âm',
-  '/reviewer/history-contribution': 'Lịch sử kiểm duyệt câu đóng góp',
+  '/reviewer/history-contribution': 'Lịch sử duyệt đề xuất câu',
 };
 
 export default function usePageTitle() {
