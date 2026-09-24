@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { CheckCircle2, XCircle, Search, FolderKanban, X, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, XCircle, Search, FolderKanban, X, AlertTriangle, ArrowRight, ArrowLeft, ClipboardCheck } from 'lucide-react';
 import Pagination from '../../../../components/Pagination/Pagination';
+import { parseCodeSwitch, stripTags } from '../../../../components/CodeSwitchText/CodeSwitchText';
 import { REVIEWER_ACCENT as ACCENT } from '../../../../constants/theme';
+import { PROPOSAL_TASK as TASK, CONTRIBUTION_QUEUE, REPORT_QUEUE as INITIAL_REPORTS } from '../../../../mocks/reviewer/proposals';
 
 const CATEGORIES = ['Hội thoại hàng ngày', 'Công nghệ thông tin', 'Giáo dục'];
 
@@ -27,64 +30,74 @@ function InlineLabel({ variant }) {
   );
 }
 
+// Trang "Đề xuất câu" chia 2 tab: Câu đóng góp / Câu báo lỗi.
+// Muốn tạm khoá 1 tab thì đặt disabled: true (tab sẽ hiện nhãn "Sắp có").
+const TABS = [
+  { key: 'contribution', label: 'Câu đóng góp', color: ACCENT, disabled: false },
+  { key: 'report', label: 'Câu báo lỗi', color: '#C0442B', disabled: false },
+];
+
+/** Câu Việt-Anh hiển thị sạch: bỏ thẻ [vi]/[en], đoạn tiếng Anh tô màu accent. */
+function CodeSwitchSentence({ transcript }) {
+  return parseCodeSwitch(transcript).map((seg, i) =>
+    seg.lang === 'en'
+      ? <span key={i} className="font-bold" style={{ color: ACCENT }}>{seg.text}</span>
+      : <span key={i}>{seg.text}</span>
+  );
+}
+
 export default function ReviewContribution() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('contribution');
+  const [reports, setReports] = useState(INITIAL_REPORTS);
   const [filterCategory, setFilterCategory] = useState('all');
 
   const [selectedItem, setSelectedItem] = useState(null); // form từ chối
   const [rejectCategory, setRejectCategory] = useState('grammar');
   const [rejectReason, setRejectReason] = useState('');
 
-  const pageSize = 6;
+  // Số hàng mỗi trang tự tính theo chiều cao vùng danh sách -> cả trang luôn vừa 1 màn hình, không cuộn
+  const listRef = useRef(null);
+  const [pageSize, setPageSize] = useState(4);
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return undefined;
+    const fit = () => {
+      // Đo chiều cao tự nhiên của 1 hàng (không tính phần giãn thêm khi trang đầy)
+      const row = el.firstElementChild;
+      // Chiều cao tự nhiên của hàng = phần nội dung cao nhất trong các cột (đo từ phần tử con đầu tới cuối,
+      // vì cột thông tin bị kéo giãn theo hàng) + đệm trên dưới py-3 (24px) + viền ngăn cách 1px
+      const contentH = (col) => {
+        const first = col.firstElementChild;
+        const last = col.lastElementChild;
+        return first ? last.getBoundingClientRect().bottom - first.getBoundingClientRect().top : col.offsetHeight;
+      };
+      const rowH = row ? Math.max(...[...row.children].map(contentH)) + 25 : 120;
+      setPageSize(Math.max(1, Math.floor(el.clientHeight / rowH)));
+    };
+    // Đo sau khi trình duyệt vẽ xong khung hình (bố cục đã ổn định), và đo lại khi font chữ tải xong
+    // vì font dự phòng rộng hơn làm câu xuống dòng -> hàng cao hơn thực tế
+    let frame = 0;
+    const scheduleFit = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit); };
+    const ro = new ResizeObserver(scheduleFit);
+    ro.observe(el);
+    scheduleFit();
+    document.fonts?.ready.then(scheduleFit);
+    return () => { ro.disconnect(); cancelAnimationFrame(frame); };
+  }, [activeTab]); // đổi tab thì đo lại vì chiều cao hàng 2 tab khác nhau
 
-  // TODO: thay bằng dữ liệu thật từ API - đúng shape ContributeText: cs_transcript + vi_equivalent + alignment
-  const [activeQueue, setActiveQueue] = useState([
-    { id: 'TXT-3001', category: 'Hội thoại hàng ngày', author: 'Đặng Mai Phương', time: '05/09/2026 - 14:20',
-      cs_transcript: '[vi]Chiều nay mình đi cà phê rồi [en]check-in [vi]chỗ mới nha.',
-      vi_equivalent: '[vi]Chiều nay mình đi cà phê rồi đánh dấu vị trí chỗ mới nha.',
-      alignment: [{ source: 'check-in', target: 'đánh dấu vị trí' }] },
-    { id: 'TXT-3002', category: 'Hội thoại hàng ngày', author: 'Nguyễn Mạnh Lực', time: '05/09/2026 - 10:10',
-      cs_transcript: '[vi]Tối nay có [en]sale [vi]lớn, mình đi [en]shopping [vi]chút đi.',
-      vi_equivalent: '[vi]Tối nay có giảm giá lớn, mình đi mua sắm chút đi.',
-      alignment: [{ source: 'sale', target: 'giảm giá' }, { source: 'shopping', target: 'mua sắm' }] },
-    { id: 'TXT-3003', category: 'Công nghệ thông tin', author: 'Lê Hoàng Nam', time: '04/09/2026 - 09:30',
-      cs_transcript: '[vi]Bạn [en]deploy [vi]bản mới lên [en]server [vi]chưa vậy?',
-      vi_equivalent: '[vi]Bạn triển khai bản mới lên máy chủ chưa vậy?',
-      alignment: [{ source: 'deploy', target: 'triển khai' }, { source: 'server', target: 'máy chủ' }] },
-    { id: 'TXT-3004', category: 'Công nghệ thông tin', author: 'Hoàng Quốc Bảo', time: '03/09/2026 - 11:45',
-      cs_transcript: '[vi]Cái [en]bug [vi]này mình [en]fix [vi]xong rồi, chờ [en]review [vi]thôi.',
-      vi_equivalent: '[vi]Cái lỗi này mình sửa xong rồi, chờ xem xét thôi.',
-      alignment: [{ source: 'bug', target: 'lỗi' }, { source: 'fix', target: 'sửa' }, { source: 'review', target: 'xem xét' }] },
-    { id: 'TXT-3005', category: 'Giáo dục', author: 'Phạm Thu Thảo', time: '02/09/2026 - 16:15',
-      cs_transcript: '[vi]Hạn nộp [en]assignment [vi]là thứ sáu tuần này nha.',
-      vi_equivalent: '[vi]Hạn nộp bài tập là thứ sáu tuần này nha.',
-      alignment: [{ source: 'assignment', target: 'bài tập' }] },
-    { id: 'TXT-3006', category: 'Giáo dục', author: 'Trần Minh Tâm', time: '01/09/2026 - 14:05',
-      cs_transcript: '[vi]Mai có buổi [en]workshop [vi]về kỹ năng [en]presentation [vi]đó.',
-      vi_equivalent: '[vi]Mai có buổi hội thảo về kỹ năng thuyết trình đó.',
-      alignment: [{ source: 'workshop', target: 'hội thảo' }, { source: 'presentation', target: 'thuyết trình' }] },
-    { id: 'TXT-3007', category: 'Hội thoại hàng ngày', author: 'Nguyễn Mạnh Lực', time: '31/08/2026 - 20:30',
-      cs_transcript: '[vi]Nhớ [en]order [vi]đồ ăn trước khi hết giờ [en]happy hour [vi]nha.',
-      vi_equivalent: '[vi]Nhớ đặt đồ ăn trước khi hết giờ vàng nha.',
-      alignment: [{ source: 'order', target: 'đặt' }, { source: 'happy hour', target: 'giờ vàng' }] },
-    { id: 'TXT-3008', category: 'Công nghệ thông tin', author: 'Lê Hoàng Nam', time: '30/08/2026 - 08:20',
-      cs_transcript: '[vi]Con [en]model [vi]này [en]train [vi]xong chưa, cho mình xem [en]result [vi]với.',
-      vi_equivalent: '[vi]Con mô hình này huấn luyện xong chưa, cho mình xem kết quả với.',
-      alignment: [{ source: 'model', target: 'mô hình' }, { source: 'train', target: 'huấn luyện' }, { source: 'result', target: 'kết quả' }] },
-    { id: 'TXT-3009', category: 'Giáo dục', author: 'Đặng Mai Phương', time: '29/08/2026 - 13:10',
-      cs_transcript: '[vi]Nhớ ôn kỹ trước khi thi [en]final [vi]nhé, đề khó lắm.',
-      vi_equivalent: '[vi]Nhớ ôn kỹ trước khi thi cuối kỳ nhé, đề khó lắm.',
-      alignment: [{ source: 'final', target: 'cuối kỳ' }] },
-    { id: 'TXT-3010', category: 'Hội thoại hàng ngày', author: 'Phạm Thu Thảo', time: '28/08/2026 - 17:00',
-      cs_transcript: '[vi]Cuối tuần đi [en]camping [vi]với team không?',
-      vi_equivalent: '[vi]Cuối tuần đi cắm trại với team không?',
-      alignment: [{ source: 'camping', target: 'cắm trại' }] },
-  ]);
+  const [activeQueue, setActiveQueue] = useState(CONTRIBUTION_QUEUE);
 
   const filteredQueue = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    if (activeTab === 'report') {
+      return reports.filter((r) =>
+        `${r.id} ${r.author} ${r.reason} ${r.cs_transcript} ${r.vi_equivalent}`.toLowerCase().includes(q),
+      );
+    }
     return activeQueue.filter((it) => {
-      const q = searchTerm.toLowerCase();
       const matchSearch = it.id.toLowerCase().includes(q) ||
         it.cs_transcript.toLowerCase().includes(q) ||
         it.vi_equivalent.toLowerCase().includes(q) ||
@@ -93,121 +106,217 @@ export default function ReviewContribution() {
       const matchCat = filterCategory === 'all' || it.category === filterCategory;
       return matchSearch && matchCat;
     });
-  }, [activeQueue, searchTerm, filterCategory]);
+  }, [activeTab, reports, activeQueue, searchTerm, filterCategory]);
 
   const totalPages = Math.ceil(filteredQueue.length / pageSize) || 1;
+  // Màn hình đổi cỡ làm số trang giảm -> kéo trang hiện tại về trang cuối hợp lệ
+  const page = Math.min(currentPage, totalPages);
   const paginatedQueue = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (page - 1) * pageSize;
     return filteredQueue.slice(start, start + pageSize);
-  }, [filteredQueue, currentPage]);
+  }, [filteredQueue, page, pageSize]);
 
-  const handleApprove = (id) => setActiveQueue((prev) => prev.filter((it) => it.id !== id));
+  // Số câu đã xử lý trong phiên (cả 2 tab) - cộng vào tiến độ của nhiệm vụ chung
+  const [processed, setProcessed] = useState(0);
+  const markProcessed = () => setProcessed((n) => n + 1);
+  const taskReviewed = Math.min(TASK.total, TASK.reviewedBefore + processed);
+  const taskPercent = Math.round((taskReviewed / TASK.total) * 100);
+  const tabCounts = { contribution: activeQueue.length, report: reports.length };
+
+  const switchTab = (key) => { setActiveTab(key); setCurrentPage(1); setSearchTerm(''); };
+
+  // Duyệt / từ chối xong thì câu rời hàng đợi của tab đang mở
+  // TODO: gọi API duyệt / từ chối câu đóng góp hoặc câu báo lỗi
+  const removeFromActiveTab = (id) => {
+    const setQueue = activeTab === 'report' ? setReports : setActiveQueue;
+    setQueue((prev) => prev.filter((it) => it.id !== id));
+    markProcessed();
+  };
+
+  const handleApprove = (id) => removeFromActiveTab(id);
 
   const handleRejectSubmit = (e) => {
     e.preventDefault();
     if (!selectedItem) return;
-    setActiveQueue((prev) => prev.filter((it) => it.id !== selectedItem.id));
+    removeFromActiveTab(selectedItem.id);
     setSelectedItem(null);
     setRejectReason('');
     setRejectCategory('grammar');
   };
 
   return (
-    <div className="space-y-4 pb-6 text-left font-sans">
+    <div className="h-full min-h-0 flex flex-col gap-2.5 text-left font-sans">
 
-      {/* Thanh lọc & tìm kiếm */}
-      <div className="bg-white p-3 rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] flex flex-col md:flex-row gap-3 justify-between items-center">
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-[#9A9CA3] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            placeholder="Tìm theo người đóng góp, nội dung..."
-            className="w-full pl-9 pr-4 py-2 text-xs border border-[#E5E2D8] rounded-xl outline-none focus:border-[#818CF8] focus:ring-4 focus:ring-[#818CF8]/10 transition-all"
-          />
-        </div>
-        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-          <FolderKanban className="w-3.5 h-3.5 text-[#9A9CA3]" />
-          <select
-            value={filterCategory}
-            onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
-            className="text-xs border border-[#E5E2D8] rounded-xl px-3 py-2 bg-white text-[#16171C] font-medium outline-none focus:border-[#818CF8]"
+      {/* Thanh nhiệm vụ + bộ lọc - cùng cấu trúc với trang Kiểm duyệt ghi âm */}
+      <div className="shrink-0 bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
+        <div className="px-3.5 py-2.5 flex items-center gap-4">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${ACCENT}1A` }}>
+              <ClipboardCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+            </div>
+            <p className="text-xs font-bold text-[#16171C] whitespace-nowrap">{TASK.title}</p>
+          </div>
+          <div className="flex items-center gap-2.5 flex-1 min-w-[200px]">
+            <div className="flex-1 h-1.5 bg-[#F0EEE6] rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-300" style={{ width: `${taskPercent}%`, background: ACCENT }} />
+            </div>
+            <span className="text-[11px] text-[#6E7078] whitespace-nowrap">
+              <strong className="text-[#16171C]">{taskReviewed}</strong>/{TASK.total} đã xử lý
+            </span>
+          </div>
+          <button
+            onClick={() => navigate('/reviewer/task')}
+            className="ml-auto text-[11px] font-semibold flex items-center gap-1.5 hover:underline shrink-0 whitespace-nowrap cursor-pointer"
+            style={{ color: ACCENT }}
           >
-            <option value="all">Tất cả phân loại</option>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+            <ArrowLeft className="w-3.5 h-3.5" /> Về danh sách nhiệm vụ
+          </button>
+        </div>
+
+        {/* Tab dạng gạch chân + tìm kiếm + lọc chủ đề */}
+        <div className="px-3.5 flex flex-col md:flex-row md:items-end gap-2.5 border-t border-[#F0EEE6]">
+          <div role="tablist" className="flex items-end gap-1">
+            {TABS.map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  role="tab"
+                  aria-selected={active}
+                  disabled={tab.disabled}
+                  onClick={() => switchTab(tab.key)}
+                  className={`h-11 px-3 flex items-center gap-2 text-[13px] font-bold border-b-2 -mb-px transition-colors ${tab.disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  style={{
+                    color: tab.disabled ? '#B7B4A9' : active ? tab.color : '#6E7078',
+                    borderBottomColor: active ? tab.color : 'transparent',
+                  }}
+                  title={tab.disabled ? 'Tạm thời chưa mở' : undefined}
+                >
+                  {tab.label}
+                  {tab.disabled ? (
+                    <span className="h-[18px] px-1.5 rounded-full text-[10.5px] font-semibold flex items-center bg-[#F0EEE6] text-[#A3A6AE]">Sắp có</span>
+                  ) : (
+                    <span
+                      className="h-[18px] min-w-5 px-1.5 rounded-full text-[10.5px] font-mono font-semibold flex items-center justify-center"
+                      style={active ? { background: tab.color, color: '#FFFFFF' } : { background: '#F0EEE6', color: '#6E7078' }}
+                    >
+                      {tabCounts[tab.key]}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="md:ml-auto flex flex-col md:flex-row md:items-center gap-2.5 py-2">
+            <div className="relative w-full md:w-[280px]">
+              <Search className="w-4 h-4 text-[#9A9CA3] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                placeholder={activeTab === 'report' ? 'Tìm theo người báo lỗi, lý do, nội dung...' : 'Tìm theo người đóng góp, nội dung...'}
+                className="w-full pl-9 pr-4 py-2 text-[13px] leading-4 border border-[#E5E2D8] rounded-xl outline-none focus:border-[#818CF8] focus:ring-4 focus:ring-[#818CF8]/10 transition-all"
+              />
+            </div>
+            {/* Lọc chủ đề chỉ có ở tab đóng góp - câu báo lỗi không có chủ đề */}
+            {activeTab === 'contribution' && (
+            <div className="flex items-center gap-1.5">
+              <FolderKanban className="w-3.5 h-3.5 text-[#9A9CA3]" />
+              <select
+                value={filterCategory}
+                onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+                className="text-xs leading-4 border border-[#E5E2D8] rounded-xl px-2.5 py-2 bg-white text-[#16171C] font-medium outline-none focus:border-[#818CF8]"
+              >
+                <option value="all">Tất cả chủ đề</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Danh sách dạng card - đủ chỗ cho cả câu Việt-Anh, câu Việt, và nghĩa từng từ tiếng Anh */}
+      {/* Danh sách câu đóng góp - hàng liền nhau, cột thông tin bên trái tách khỏi câu, câu hiển thị sạch (không thẻ [vi]/[en]) */}
       {paginatedQueue.length > 0 ? (
-        <div className="space-y-3">
-          {paginatedQueue.map((it) => (
-            <div key={it.id} className="bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] p-5">
+        <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-[#E5E2D8] overflow-hidden">
+          <div ref={listRef} className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          {paginatedQueue.map((it, idx) => {
+            // Hàng luôn cao theo nội dung (không giãn) để 2 tab có khoảng cách giống hệt nhau.
+            // Mọi hàng đều có đường kẻ dưới (kể cả hàng cuối) để phân cách rõ với phần trống / phân trang
+            const rowCls = 'px-4 py-3 grid grid-cols-[20px_160px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[#F0EEE6]';
+            const rowNo = (page - 1) * pageSize + idx + 1;
 
-              <div className="flex items-start justify-between gap-3 mb-3.5 flex-wrap">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold border" style={{ background: catStyle(it.category).bg, color: catStyle(it.category).text, borderColor: catStyle(it.category).border }}>
-                    {it.category}
+            // Tag bên trái: câu báo lỗi dùng lý do báo lỗi, câu đóng góp dùng chủ đề
+            const isReport = activeTab === 'report';
+            const tag = isReport
+              ? { label: it.reason, bg: '#FFF4E5', text: '#8B5E0F' }
+              : { label: it.category, ...catStyle(it.category) };
+            return (
+              <div key={it.id} className={rowCls}>
+                <span className="text-[11px] text-[#9A9CA3] font-mono self-start pt-0.5">{rowNo}</span>
+
+                {/* Cột thông tin: chủ đề + người đóng góp + thời gian, tách khỏi phần câu */}
+                <div className="flex flex-col items-start gap-1.5 pr-3 border-r border-[#F0EEE6] self-stretch justify-center">
+                  <span className="h-[22px] px-2 rounded-md text-[11px] font-bold inline-flex items-center" style={{ background: tag.bg, color: tag.text }}>
+                    {tag.label}
                   </span>
                   <span className="text-xs font-semibold text-[#16171C]">{it.author}</span>
                   <span className="text-[11px] text-[#9A9CA3] font-mono">{it.time}</span>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+
+                {/* Cột câu: hai câu cùng cỡ và độ đậm, nghĩa từ bên dưới */}
+                <div className="min-w-0 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2.5">
+                    <InlineLabel variant="cs" />
+                    <p className="text-[14px] font-medium text-[#16171C] leading-snug min-w-0">
+                      <CodeSwitchSentence transcript={it.cs_transcript} />
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <InlineLabel variant="vi" />
+                    <p className="text-[14px] font-medium text-[#16171C] leading-snug min-w-0">{stripTags(it.vi_equivalent)}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pl-[46px] pt-0.5">
+                    {it.alignment.map((a, i) => (
+                      <span key={i} className="h-6 flex items-center gap-1.5 bg-[#F4F3EE] rounded-md px-2">
+                        <span className="text-[11px] font-bold font-mono" style={{ color: ACCENT }}>{a.source}</span>
+                        <ArrowRight className="w-3 h-3 text-[#B7B4A9] shrink-0" />
+                        <span className="text-[11.5px] font-medium text-[#16171C]">{a.target}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => handleApprove(it.id)}
-                    className="px-3.5 py-2 bg-[#EAF7EF] border border-[#C5E8D3] text-[#1F5C3F] rounded-lg text-[11px] font-bold flex items-center gap-1.5 hover:bg-[#DCF0E5] transition-colors cursor-pointer"
+                    className="h-[30px] px-3 bg-[#EAF7EF] border border-[#C5E8D3] text-[#1F5C3F] rounded-lg text-[11px] font-bold flex items-center gap-1.5 hover:bg-[#DCF0E5] transition-colors cursor-pointer"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
                   </button>
                   <button
                     onClick={() => setSelectedItem(it)}
-                    className="px-3.5 py-2 bg-[#FDEAEA] border border-[#F3C9C9] text-[#C63B3B] rounded-lg text-[11px] font-bold flex items-center gap-1.5 hover:bg-[#FBDADA] transition-colors cursor-pointer"
+                    className="h-[30px] px-3 bg-[#FDEAEA] border border-[#F3C9C9] text-[#C63B3B] rounded-lg text-[11px] font-bold flex items-center gap-1.5 hover:bg-[#FBDADA] transition-colors cursor-pointer"
                   >
                     <XCircle className="w-3.5 h-3.5" /> Từ chối
                   </button>
                 </div>
               </div>
+            );
+          })}
+          </div>
 
-              {/* Câu Việt-Anh - nhãn pill VI-EN thay cho dòng chữ header, khớp InlineLabel bên trang ghi âm */}
-              <div className="bg-[#F7F5EF] rounded-xl p-3.5 mb-2.5 flex items-center gap-2.5">
-                <InlineLabel variant="cs" />
-                <p className="text-sm font-semibold text-[#16171C] leading-relaxed min-w-0">
-                  {it.cs_transcript}
-                </p>
-              </div>
-              {/* Câu tiếng Việt - nhãn pill VI */}
-              <div className="bg-[#F7F5EF] rounded-xl p-3.5 mb-3 flex items-center gap-2.5">
-                <InlineLabel variant="vi" />
-                <p className="text-sm font-semibold text-[#16171C] leading-relaxed min-w-0">{it.vi_equivalent}</p>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold text-[#9A9CA3] uppercase tracking-wider mb-2">Nghĩa từ tiếng Anh</p>
-                <div className="flex flex-wrap gap-2">
-                  {it.alignment.map((a, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-[#F0EEE6] border border-[#E5E2D8] rounded-lg px-3 py-1.5">
-                      <span className="text-xs font-bold font-mono" style={{ color: ACCENT }}>{a.source}</span>
-                      <ArrowRight className="w-3 h-3 text-[#B7B4A9] shrink-0" />
-                      <span className="text-xs font-semibold text-[#16171C]">{a.target}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
+          <div className="shrink-0 px-3">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={(p) => setCurrentPage(p)} accent={ACCENT} />
+          </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] py-14 text-center">
-          <p className="font-bold text-[#16171C] text-sm">Tuyệt vời! Bạn đã xử lý hết hàng đợi chờ duyệt.</p>
+        <div className="shrink-0 bg-white rounded-2xl border border-[#E5E2D8] py-14 text-center">
+          <p className="font-bold text-[#16171C] text-sm">
+            {activeTab === 'report' ? 'Tuyệt vời! Bạn đã xử lý hết câu báo lỗi.' : 'Tuyệt vời! Bạn đã xử lý hết câu đóng góp chờ duyệt.'}
+          </p>
           <p className="text-[#9A9CA3] text-xs mt-1">Các câu đã thao tác sẽ được ghi nhận tại mục Lịch sử kiểm duyệt.</p>
-        </div>
-      )}
-
-      {paginatedQueue.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] px-3">
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => setCurrentPage(p)} accent={ACCENT} />
         </div>
       )}
 
@@ -233,12 +342,12 @@ export default function ReviewContribution() {
               <div className="bg-[#F7F5EF] border border-[#E5E2D8] rounded-xl p-3 mb-2.5 flex items-center gap-2.5">
                 <InlineLabel variant="cs" />
                 <p className="text-[12.5px] text-[#16171C] leading-relaxed break-words min-w-0">
-                  {selectedItem.cs_transcript}
+                  <CodeSwitchSentence transcript={selectedItem.cs_transcript} />
                 </p>
               </div>
               <div className="bg-[#F7F5EF] border border-[#E5E2D8] rounded-xl p-3 mb-4 flex items-center gap-2.5">
                 <InlineLabel variant="vi" />
-                <p className="text-[12.5px] text-[#16171C] leading-relaxed break-words min-w-0">{selectedItem.vi_equivalent}</p>
+                <p className="text-[12.5px] text-[#16171C] leading-relaxed break-words min-w-0">{stripTags(selectedItem.vi_equivalent)}</p>
               </div>
 
               <form onSubmit={handleRejectSubmit} className="space-y-4">

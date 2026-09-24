@@ -10,20 +10,15 @@ import {
   TEXT_HEADING, TEXT_BODY,
   BORDER_LIGHT, SURFACE_PAGE, SURFACE_MUTED,
 } from "../../../constants/theme";
+import { CURRENT_SENTENCE } from "../../../mocks/speaker/tasks";
+import { formatTime } from "../../../utils/audio";
 
-// TODO: thay bằng dữ liệu thật từ API - fallback khi vào thẳng trang không qua RecordSpeech
-const FALLBACK_CS = "[vi]Em nên [en]scan [vi]tài liệu này rồi gửi qua [en]email [vi]cho tôi.";
-const FALLBACK_VI = "[vi]Em nên quét tài liệu này rồi gửi qua thư điện tử cho tôi.";
+// Fallback khi vào thẳng trang không qua RecordSpeech - tạm lấy câu mẫu (TODO: thay bằng dữ liệu thật từ API)
+const FALLBACK_CS = CURRENT_SENTENCE.cs_transcript;
+const FALLBACK_VI = CURRENT_SENTENCE.vi_equivalent;
 
 function stripLangTags(text) {
   return text.replace(/\[(vi|en)\]/g, "").trim();
-}
-
-function formatTime(s) {
-  if (!isFinite(s)) return "0:00";
-  const m = Math.floor(Math.abs(s) / 60);
-  const sec = Math.floor(Math.abs(s) % 60);
-  return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
 /** Mini audio player dùng lại cho từng câu — nút play xanh dương đồng bộ với RecordSpeech. */
@@ -48,6 +43,19 @@ function AudioBlock({ label, src }) {
       audio.removeEventListener("ended", onEnded);
     };
   }, [src]);
+
+  // "timeupdate" chỉ bắn ~4 lần/giây nên thanh tiến độ bị khựng; khi đang phát thì đọc
+  // currentTime theo từng khung hình (requestAnimationFrame) để thanh chạy mượt.
+  useEffect(() => {
+    if (!isPlaying) return;
+    let frameId;
+    const tick = () => {
+      if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+      frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [isPlaying]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -83,7 +91,7 @@ function AudioBlock({ label, src }) {
         </div>
         <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: BORDER_LIGHT }}>
           <div
-            className="h-full rounded-full transition-all duration-100"
+            className="h-full rounded-full"
             style={{ width: `${playedFraction * 100}%`, background: AUDIO_PRIMARY }}
           />
         </div>
@@ -112,7 +120,7 @@ export default function SubmitTask() {
     setTimeout(() => {
       setIsSubmitting(false);
       // TODO: nối API nộp bài thật (gửi kèm csAudioUrl + viAudioUrl), thay cho setTimeout mô phỏng này
-      toast.success("Nộp bài thành công!", {
+      toast.success("Đã gửi bản ghi!", {
         description: "Cả 2 bản ghi đang chờ đội ngũ kiểm duyệt chất lượng.",
       });
       navigate("/review-text");
@@ -128,7 +136,7 @@ export default function SubmitTask() {
         className="rounded-2xl p-6 space-y-4"
         style={{ background: "#FFFFFF", border: `1px solid ${BORDER_LIGHT}`, boxShadow: "0 1px 3px rgba(16,17,20,0.04)" }}
       >
-        <h3 className="font-bold text-[15px]" style={{ color: TEXT_HEADING }}>Kiểm tra lần cuối trước khi nộp</h3>
+        <h3 className="font-bold text-[15px]" style={{ color: TEXT_HEADING }}>Kiểm tra lần cuối trước khi gửi</h3>
 
         {/* Câu Việt-Anh + audio tương ứng */}
         <div className="space-y-2">
@@ -179,7 +187,7 @@ export default function SubmitTask() {
           className="flex-[2] py-4 text-white font-bold text-[15px] rounded-2xl hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.99] transition-all"
           style={{ background: ACCENT, boxShadow: `0 10px 24px ${ACCENT}40` }}
         >
-          {isSubmitting ? <span>Đang nộp bài...</span> : (<><Send className="w-4 h-4" /> Xác nhận và nộp bài</>)}
+          {isSubmitting ? <span>Đang gửi...</span> : (<><Send className="w-4 h-4" /> Gửi bản ghi</>)}
         </button>
       </div>
     </div>

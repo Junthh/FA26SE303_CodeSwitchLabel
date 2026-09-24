@@ -65,7 +65,7 @@ export default function Logo({
       {showText && (
         <span
           className="select-none whitespace-nowrap"
-          style={{ fontWeight: 500, letterSpacing: '-0.01em', fontSize: size * 0.5, lineHeight: 1 }}
+          style={{ fontWeight: 700, letterSpacing: '-0.025em', fontSize: size * 0.5, lineHeight: 1 }}
         >
           <span style={{ color: contrast }}>CodeSwitch</span>
           <span style={{ color: LOGO_ACCENT }}>Label</span>

@@ -83,6 +83,12 @@ const routes = [
           () => import("../pages/ReviewerTemplate/Review/ReviewContribution/index"),
         ),
       },
+      {
+        path: "script",
+        element: lazy(
+          () => import("../pages/ReviewerTemplate/Review/ReviewScript/index"),
+        ),
+      },
       // Lịch sử kiểm duyệt
       {
         path: "history-recording",

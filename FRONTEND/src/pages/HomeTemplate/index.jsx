@@ -52,7 +52,7 @@ export default function HomeTemplate() {
             style={{ background: SURFACE_PAGE }}
           >
             <div className="hidden lg:block">
-              <Header />
+              <Header role="speaker" />
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

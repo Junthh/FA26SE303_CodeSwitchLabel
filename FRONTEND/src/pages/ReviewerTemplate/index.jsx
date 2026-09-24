@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Toaster } from '@/components/ui/sonner';
 import Sidebar from '../../components/Sidebar/Sidebar';
-import ReviewerHeader from '../../components/ReviewerHeader/ReviewerHeader';
+import Header from '../../components/Header/Header';
 import Logo from '../../components/Logo/Logo';
 import usePageTitle from '../../hooks/usePageTitle';
 
@@ -39,7 +39,7 @@ export default function ReviewerTemplate() {
         {/* Main: Header cố định trên + Outlet cuộn dưới, giống HomeTemplate của Speaker */}
         <main className="flex-1 lg:ml-64 h-full flex flex-col overflow-hidden bg-[#F7F5EF] pt-16 lg:pt-0">
           <div className="hidden lg:block">
-            <ReviewerHeader />
+            <Header role="reviewer" />
           </div>
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <Outlet />
