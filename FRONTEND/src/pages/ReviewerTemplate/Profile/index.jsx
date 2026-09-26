@@ -2,13 +2,13 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { SPEAKER_ACCENT as ACCENT } from '../../../constants/theme';
-import { SPEAKER_PROFILE } from '../../../mocks/speaker/profile';
+import { REVIEWER_ACCENT as ACCENT } from '../../../constants/theme';
+import { REVIEWER_PROFILE } from '../../../mocks/reviewer/profile';
 
 const GENDERS = ['Nam', 'Nữ', 'Khác'];
 const ENGLISH_LEVELS = ['Chưa có', 'Dưới 4.0', '4.0 - 5.0', '5.5 - 6.5', '7.0 - 8.0', '8.5+'];
 
-// Schema riêng cho Speaker - sửa độc lập với form Reviewer
+// Schema riêng cho Reviewer - sửa độc lập với form Speaker
 const profileSchema = Yup.object({
   fullName: Yup.string()
     .trim()
@@ -45,22 +45,22 @@ const profileSchema = Yup.object({
 const FIELD_BASE =
   'w-full px-3.5 py-2.5 rounded-xl border-[1.5px] bg-white text-[#2B2C31] text-[13px] font-medium transition-all outline-none placeholder:text-[#B7B4A9] placeholder:font-normal';
 
-export default function Profile() {
+export default function ReviewerProfile() {
   const formik = useFormik({
     initialValues: {
-      fullName: SPEAKER_PROFILE.fullName,
-      gender: SPEAKER_PROFILE.gender,
-      birthDate: SPEAKER_PROFILE.birthDate,
-      hometown: SPEAKER_PROFILE.hometown,
-      englishLevel: SPEAKER_PROFILE.englishLevel,
-      occupation: SPEAKER_PROFILE.occupation,
-      major: '',
-      email: SPEAKER_PROFILE.email,
+      fullName: REVIEWER_PROFILE.fullName,
+      gender: REVIEWER_PROFILE.gender,
+      birthDate: REVIEWER_PROFILE.birthDate,
+      hometown: REVIEWER_PROFILE.hometown,
+      englishLevel: REVIEWER_PROFILE.englishLevel,
+      occupation: REVIEWER_PROFILE.occupation,
+      major: REVIEWER_PROFILE.major,
+      email: REVIEWER_PROFILE.email,
       password: '',
     },
     validationSchema: profileSchema,
     onSubmit: (values, { resetForm }) => {
-      // TODO: gọi API cập nhật hồ sơ Speaker
+      // TODO: gọi API cập nhật hồ sơ Reviewer
       toast.success('Đã lưu thông tin.');
       resetForm({ values: { ...values, password: '' } });
     },
@@ -71,7 +71,7 @@ export default function Profile() {
     `${FIELD_BASE} ${
       hasError(name)
         ? 'border-[#C63B3B] focus:ring-4 focus:ring-[#C63B3B]/10'
-        : 'border-[#E5E2D8] hover:border-[#D8D5C9] focus:border-[#3563C9] focus:ring-4 focus:ring-[#3563C9]/10'
+        : 'border-[#E5E2D8] hover:border-[#D8D5C9] focus:border-[#0052CC] focus:ring-4 focus:ring-[#0052CC]/10'
     }`;
   const errorText = (name) =>
     hasError(name) && <p className="text-[11.5px] font-medium text-[#C63B3B] mt-1">{formik.errors[name]}</p>;
@@ -80,7 +80,7 @@ export default function Profile() {
     <div className="max-w-4xl mx-auto space-y-4 text-left font-sans">
       <div>
         <h1 className="text-[22px] font-bold text-[#2B2C31] tracking-tight">Thông tin cá nhân</h1>
-        <p className="text-[13px] text-[#6E7078] mt-1">Cập nhật thông tin cá nhân của bạn để hỗ trợ thu thập dữ liệu chính xác hơn.</p>
+        <p className="text-[13px] text-[#6E7078] mt-1">Cập nhật thông tin cá nhân của bạn.</p>
       </div>
 
       <div className="bg-white p-6 rounded-[24px] border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] space-y-5">
@@ -110,7 +110,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Bỏ Vùng miền - thay bằng Trình độ tiếng Anh (IELTS), đi cùng hàng với Tỉnh/Thành phố */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Tỉnh / Thành phố *</label>

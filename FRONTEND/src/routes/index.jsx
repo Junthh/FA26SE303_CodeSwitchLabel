@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Route } from "react-router-dom";
 import HomeTemplate from "../pages/HomeTemplate/index";
 import ReviewerTemplate from "../pages/ReviewerTemplate/index";
+import Loading from "../components/Loading/Loading";
 
 const routes = [
   {
@@ -19,12 +20,6 @@ const routes = [
       {
         path: "record-speech",
         element: lazy(() => import("../pages/HomeTemplate/RecordSpeech/index")),
-      },
-      {
-        path: "review-recording",
-        element: lazy(
-          () => import("../pages/HomeTemplate/ReviewRecording/index"),
-        ),
       },
       {
         path: "submit-task",
@@ -102,7 +97,16 @@ const routes = [
           () => import("../pages/ReviewerTemplate/ReviewHistory/ReviewHistoryContribution/index"),
         ),
       },
+      {
+        path: "profile",
+        element: lazy(() => import("../pages/ReviewerTemplate/Profile/index")),
+      },
     ],
+  },
+  // Bắt mọi URL không tồn tại - phải đặt cuối danh sách
+  {
+    path: "*",
+    element: lazy(() => import("../pages/NotFound/index")),
   },
 ];
 
@@ -120,13 +124,7 @@ export const renderRoutes = () => {
                 key={item.path}
                 path={item.path}
                 element={
-                  <Suspense
-                    fallback={
-                      <div className="p-6 text-slate-400">
-                        Loading screen...
-                      </div>
-                    }
-                  >
+                  <Suspense fallback={<Loading />}>
                     <NestedComponent {...item.props} />
                   </Suspense>
                 }
@@ -142,9 +140,7 @@ export const renderRoutes = () => {
         key={idx}
         path={route.path}
         element={
-          <Suspense
-            fallback={<div className="p-6 text-slate-400">Loading...</div>}
-          >
+          <Suspense fallback={<Loading className="min-h-screen" />}>
             <Component />
           </Suspense>
         }

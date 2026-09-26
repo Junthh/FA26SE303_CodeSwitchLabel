@@ -14,7 +14,6 @@ export const HEADER_CONFIG = {
   },
   reviewer: {
     accent: REVIEWER_ACCENT,
-    // TODO: route /reviewer/profile chưa có - cần gắn trang hồ sơ dùng chung vào nhánh route Reviewer
     profilePath: '/reviewer/profile',
   },
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import TaskStepper from "../../../components/TaskStepper/TaskStepper";
 import { Send, Play, Pause, RotateCcw } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -8,7 +8,7 @@ import {
   SPEAKER_ACCENT as ACCENT,
   AUDIO_PRIMARY, AUDIO_SHADOW,
   TEXT_HEADING, TEXT_BODY,
-  BORDER_LIGHT, SURFACE_PAGE, SURFACE_MUTED,
+  BORDER_LIGHT, SURFACE_PAGE,
 } from "../../../constants/theme";
 import { CURRENT_SENTENCE } from "../../../mocks/speaker/tasks";
 import { formatTime } from "../../../utils/audio";

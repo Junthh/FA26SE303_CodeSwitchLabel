@@ -1,4 +1,3 @@
-import React from 'react';
 
 /**
  * Logo CodeSwitchLabel — mark "G2": monogram chữ C + sóng âm (dữ liệu âm thanh).

@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Lưu ý: thêm 1 lần duy nhất vào index.html (trong <head>) để load font:
 // <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import TaskStepper from '../../../components/TaskStepper/TaskStepper';
 import { Mic, RotateCcw, Play, Pause, Check, ArrowRight, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -47,7 +47,6 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
   const chunksRef = useRef([]);
   const waveContainerRef = useRef(null);
 
-  const isThisRecording = recordingCardId === id;
   const canStart = recordingCardId === null; // chỉ 1 card được ghi cùng lúc
 
   const cleanupRecordingResources = () => {

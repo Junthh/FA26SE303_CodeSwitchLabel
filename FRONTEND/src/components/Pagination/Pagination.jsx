@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // accent: màu của trang active — mặc định cam (Speaker). Các vai khác truyền màu riêng:

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Mic, Target, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Target, Check } from 'lucide-react';
 import {
   SPEAKER_ACCENT as ACCENT,
   SURFACE_MUTED,
   TEXT_HEADING, TEXT_BODY,
-  TEXT_ON_DARK_PRIMARY, TEXT_ON_DARK_SECONDARY,
-  BORDER_LIGHT, BORDER_DARK_SUBTLE,
+  TEXT_ON_DARK_PRIMARY,
+  BORDER_LIGHT,
   CHIP_SUCCESS_BG, CHIP_SUCCESS_BORDER, CHIP_SUCCESS_TEXT,
   CHIP_WARNING_BG, CHIP_WARNING_BORDER, CHIP_WARNING_TEXT,
   SURFACE_CARD,

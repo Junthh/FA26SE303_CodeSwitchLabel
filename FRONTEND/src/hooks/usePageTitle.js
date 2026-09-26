@@ -16,7 +16,6 @@ export const PAGE_TITLES = {
   '/': 'Trang chủ',
   '/review-text': 'Duyệt văn bản',
   '/record-speech': 'Ghi âm',
-  '/review-recording': 'Nghe lại',
   '/submit-task': 'Gửi bản ghi',
   '/contribute': 'Đóng góp văn bản',
   '/profile': 'Hồ sơ cá nhân',
@@ -31,6 +30,7 @@ export const PAGE_TITLES = {
   '/reviewer/script': 'Kiểm duyệt câu lỗi',
   '/reviewer/history-recording': 'Lịch sử kiểm duyệt ghi âm',
   '/reviewer/history-contribution': 'Lịch sử duyệt đề xuất câu',
+  '/reviewer/profile': 'Hồ sơ cá nhân',
 };
 
 export default function usePageTitle() {
