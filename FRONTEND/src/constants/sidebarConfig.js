@@ -32,7 +32,7 @@ export const SIDEBAR_CONFIG = {
           // activeOn: vẫn sáng mục này khi đang ở các bước sau của luồng Duyệt -> Ghi âm -> Gửi
           {
             name: 'Câu chờ ghi âm', to: '/review-text', icon: CheckSquare,
-            activeOn: ['/record-speech', '/review-recording', '/submit-task'],
+            activeOn: ['/record-speech', '/submit-task'],
           },
           { name: 'Đóng góp văn bản', to: '/contribute', icon: PlusCircle },
         ],

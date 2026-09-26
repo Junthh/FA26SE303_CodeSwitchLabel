@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { X, ChevronDown, HelpCircle } from 'lucide-react';
 import Logo from '../Logo/Logo';

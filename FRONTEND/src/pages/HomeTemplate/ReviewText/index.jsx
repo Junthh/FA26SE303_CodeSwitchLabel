@@ -6,7 +6,6 @@ import {
   SkipForward,
   ChevronDown,
   Check,
-  Quote,
   Flag,
   X,
 } from "lucide-react";

@@ -69,8 +69,8 @@ export default function ReviewTasks() {
               className="text-xs border border-[#E5E2D8] rounded-xl px-3 py-2 bg-white text-[#16171C] font-medium outline-none focus:border-[#818CF8]"
             >
               <option value="all">Tất cả người giao</option>
-              <option value="Nguyễn Hoàng">Admin - Nguyễn Hoàng</option>
-              <option value="Trần Anh">Manager - Trần Anh</option>
+              <option value="Nguyễn Hoàng">Task Manager - Nguyễn Hoàng</option>
+              <option value="Trần Anh">Task Manager - Trần Anh</option>
             </select>
           </div>
           <select
