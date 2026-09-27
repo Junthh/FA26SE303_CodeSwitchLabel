@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Filter, ArrowRight, UserCheck } from 'lucide-react';
+import { Search, Filter, ArrowRight, UserCheck, Headphones, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../../../components/Pagination/Pagination';
 import useFitPageSize from '../../../hooks/useFitPageSize';
@@ -8,6 +8,12 @@ import { ASSIGNED_TASKS } from '../../../mocks/reviewer/tasks';
 
 // Thứ tự ưu tiên hiển thị theo nhóm trạng thái
 const STATUS_ORDER = { 'in-progress': 0, 'pending': 1, 'completed': 2 };
+
+// Loại task quyết định trang kiểm duyệt được mở và đơn vị tiến độ
+const TASK_TYPES = {
+  recording: { label: 'Duyệt ghi âm', icon: Headphones, unit: 'bản', path: (task) => `/reviewer/recording?task=${encodeURIComponent(task.title)}` },
+  script: { label: 'Duyệt câu', icon: FileText, unit: 'câu', path: () => '/reviewer/contribution' },
+};
 
 export default function ReviewTasks() {
   const navigate = useNavigate();
@@ -105,6 +111,8 @@ export default function ReviewTasks() {
               {paginatedTasks.length > 0 ? paginatedTasks.map((task, idx) => {
                 const percent = Math.round((task.reviewed / task.target) * 100);
                 const st = statusStyle(task.statusType);
+                const type = TASK_TYPES[task.type];
+                const TypeIcon = type.icon;
                 return (
                   <tr key={task.id} className="hover:bg-[#F7F5EF]/70 transition-colors">
                     <td className="py-4 px-4 text-center whitespace-nowrap">
@@ -112,6 +120,9 @@ export default function ReviewTasks() {
                     </td>
                     <td className="py-4 px-6 text-left whitespace-nowrap">
                       <p className="font-bold text-[#16171C] truncate max-w-[180px] md:max-w-[220px]" title={task.title}>{task.title}</p>
+                      <span className="mt-1 inline-flex items-center gap-1 text-[10.5px] font-bold text-[#6E7078]">
+                        <TypeIcon className="w-3 h-3" /> {type.label}
+                      </span>
                     </td>
                     <td className="py-4 px-4 text-left whitespace-nowrap">
                       <span className="flex items-center gap-1.5 text-[#16171C] font-semibold">
@@ -121,7 +132,7 @@ export default function ReviewTasks() {
                     <td className="py-4 px-4 text-left">
                       <div className="flex flex-col gap-1 max-w-[140px]">
                         <div className="flex justify-between text-[11px] text-[#6E7078] font-medium">
-                          <span>{task.reviewed}/{task.target} bản</span>
+                          <span>{task.reviewed}/{task.target} {type.unit}</span>
                           <span className="font-bold text-[#16171C] font-mono">{percent}%</span>
                         </div>
                         <div className="w-full bg-[#F0EEE6] h-1.5 rounded-full overflow-hidden">
@@ -140,7 +151,7 @@ export default function ReviewTasks() {
                     </td>
                     <td className="py-4 px-6 text-left whitespace-nowrap">
                       <button
-                        onClick={() => navigate(`/reviewer/recording?task=${encodeURIComponent(task.title)}`)}
+                        onClick={() => navigate(type.path(task))}
                         className="px-3 py-1.5 text-white rounded-xl text-[11px] font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer"
                         style={{ background: ACCENT }}
                       >

@@ -67,8 +67,7 @@ export const SIDEBAR_CONFIG = {
         icon: ClipboardCheck,
         children: [
           { to: '/reviewer/recording', label: 'Ghi âm', icon: Headphones },
-          // Đề xuất câu = câu đóng góp + câu báo lỗi gộp chung 1 danh sách.
-          // Câu báo lỗi tạm dừng: route /reviewer/script vẫn giữ nhưng không hiện trên sidebar.
+          // Đề xuất câu = 1 hàng chờ chung: câu đóng góp + câu có vấn đề (báo lỗi / đề xuất sửa).
           { to: '/reviewer/contribution', label: 'Đề xuất câu', icon: FileText },
         ],
       },

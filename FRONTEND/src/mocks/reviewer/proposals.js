@@ -1,9 +1,9 @@
 /**
- * Dữ liệu mẫu trang Đề xuất câu của Reviewer (tab Câu đóng góp + tab Câu báo lỗi).
+ * Dữ liệu mẫu trang Đề xuất câu của Reviewer: 1 hàng chờ gồm câu đóng góp + câu có vấn đề.
  * TODO: thay bằng dữ liệu từ API rồi xoá file này.
  */
 
-// 1 nhiệm vụ chung cho cả 2 tab - tiến độ cộng dồn câu đóng góp + câu báo lỗi đã xử lý
+// 1 nhiệm vụ duyệt câu chung - tiến độ cộng dồn câu đóng góp + câu có vấn đề đã xử lý
 // TODO: lấy từ API nhiệm vụ của Reviewer - hiện trang Nhiệm vụ chỉ có nhiệm vụ ghi âm
 export const PROPOSAL_TASK = { title: 'Duyệt câu đóng góp và báo lỗi tuần này', total: 70, reviewedBefore: 30 };
 
@@ -51,23 +51,55 @@ export const CONTRIBUTION_QUEUE = [
     alignment: [{ source: 'camping', target: 'cắm trại' }] },
 ];
 
-// TODO: thay bằng dữ liệu thật từ API. Mỗi câu báo lỗi chỉ có 1 cặp câu (người duyệt tự đọc và quyết định),
-// cùng shape với câu đóng góp (cs_transcript + vi_equivalent + alignment), khác ở reason thay cho category.
-export const REPORT_QUEUE = [
-  { id: 'ERR-024', author: 'Nguyễn Mạnh Lực', time: '07/09/2026 - 10:15', reason: 'Sai chính tả',
-    cs_transcript: '[vi]Em nên [en]scan [vi]tài liệu này rồi gửi qua [en]email [vi]cho tôi.',
-    vi_equivalent: '[vi]Em nên quét tài liệu này rồi gửi qua thư điện tử cho tôi.',
-    alignment: [{ source: 'scan', target: 'quét' }, { source: 'email', target: 'thư điện tử' }] },
-  { id: 'ERR-023', author: 'Đặng Mai Phương', time: '07/09/2026 - 09:42', reason: 'Sai ngữ nghĩa',
-    cs_transcript: '[vi]Tối nay có [en]sale [vi]lớn, mình đi [en]shopping [vi]chút đi.',
-    vi_equivalent: '[vi]Tối nay có giảm giá lớn, mình đi mua sắm chút đi.',
-    alignment: [{ source: 'sale', target: 'giảm giá' }, { source: 'shopping', target: 'mua sắm' }] },
-  { id: 'ERR-022', author: 'Lê Hoàng Nam', time: '06/09/2026 - 16:30', reason: 'Sai ngữ pháp',
-    cs_transcript: '[vi]Bạn đã [en]deploy [vi]bản mới lên [en]server [vi]chưa?',
-    vi_equivalent: '[vi]Bạn đã triển khai bản mới lên máy chủ chưa?',
-    alignment: [{ source: 'deploy', target: 'triển khai' }, { source: 'server', target: 'máy chủ' }] },
-  { id: 'ERR-021', author: 'Phạm Thu Thảo', time: '06/09/2026 - 14:05', reason: 'Khác',
-    cs_transcript: '[vi]Mai có [en]workshop [vi]về [en]presentation [vi]đó.',
-    vi_equivalent: '[vi]Mai có hội thảo về kỹ năng thuyết trình đó.',
-    alignment: [{ source: 'workshop', target: 'hội thảo' }, { source: 'presentation', target: 'thuyết trình' }] },
+// TODO: thay bằng dữ liệu thật từ API. Câu có vấn đề = câu đang có trong kho bị Speaker báo lỗi / đề xuất sửa:
+// - kind 'report': chỉ có original (câu đang có lỗi) -> Reviewer tự sửa khi duyệt
+// - kind 'edit':   có original + proposed (bản Speaker sửa) -> Reviewer so sánh, xác nhận hoặc chỉnh thêm
+// original / proposed cùng shape với câu trong kho: cs_transcript + vi_equivalent + alignment.
+export const ISSUE_QUEUE = [
+  { id: 'ERR-024', kind: 'edit', author: 'Nguyễn Mạnh Lực', time: '07/09/2026 - 10:15', reason: 'Sai chính tả',
+    original: {
+      cs_transcript: '[vi]Em nên [en]scan [vi]tài liệu này rồi gửi qua [en]emial [vi]cho tôi.',
+      vi_equivalent: '[vi]Em nên quét tài liệu này rồi gửi qua thư điện tử cho tôi.',
+      alignment: [{ source: 'scan', target: 'quét' }, { source: 'emial', target: 'thư điện tử' }],
+    },
+    proposed: {
+      cs_transcript: '[vi]Em nên [en]scan [vi]tài liệu này rồi gửi qua [en]email [vi]cho tôi.',
+      vi_equivalent: '[vi]Em nên quét tài liệu này rồi gửi qua thư điện tử cho tôi.',
+      alignment: [{ source: 'scan', target: 'quét' }, { source: 'email', target: 'thư điện tử' }],
+    } },
+  // Speaker cho rằng "video" đã là từ tiếng Việt quen dùng: bỏ thẻ [en], bảng nghĩa chỉ còn 1 từ
+  { id: 'ERR-025', kind: 'edit', author: 'Trần Bảo Ngọc', time: '07/09/2026 - 10:00', reason: 'Sai ngữ nghĩa',
+    original: {
+      cs_transcript: '[vi]Anh [en]check [vi]lại [en]video [vi]giúp em nhé.',
+      vi_equivalent: '[vi]Anh kiểm tra lại video giúp em nhé.',
+      alignment: [{ source: 'check', target: 'kiểm tra' }, { source: 'video', target: 'video' }],
+    },
+    proposed: {
+      cs_transcript: '[vi]Anh [en]check [vi]lại video giúp em nhé.',
+      vi_equivalent: '[vi]Anh kiểm tra lại video giúp em nhé.',
+      alignment: [{ source: 'check', target: 'kiểm tra' }],
+    } },
+  { id: 'ERR-023', kind: 'report', author: 'Đặng Mai Phương', time: '07/09/2026 - 09:42', reason: 'Sai ngữ nghĩa',
+    original: {
+      cs_transcript: '[vi]Tối nay có [en]sale [vi]lớn, mình đi [en]shopping [vi]chút đi.',
+      vi_equivalent: '[vi]Tối nay có giảm giá lớn, mình đi mua sắm chút đi.',
+      alignment: [{ source: 'sale', target: 'giảm giá' }, { source: 'shopping', target: 'mua sắm' }],
+    } },
+  { id: 'ERR-022', kind: 'edit', author: 'Lê Hoàng Nam', time: '06/09/2026 - 16:30', reason: 'Sai ngữ pháp',
+    original: {
+      cs_transcript: '[vi]Bạn đã [en]deploy [vi]bản mới lên [en]server [vi]chưa rồi?',
+      vi_equivalent: '[vi]Bạn đã triển khai bản mới lên máy chủ chưa rồi?',
+      alignment: [{ source: 'deploy', target: 'triển khai' }, { source: 'server', target: 'máy chủ' }],
+    },
+    proposed: {
+      cs_transcript: '[vi]Bạn đã [en]deploy [vi]bản mới lên [en]server [vi]chưa?',
+      vi_equivalent: '[vi]Bạn đã triển khai bản mới lên máy chủ chưa?',
+      alignment: [{ source: 'deploy', target: 'triển khai' }, { source: 'server', target: 'máy chủ' }],
+    } },
+  { id: 'ERR-021', kind: 'report', author: 'Phạm Thu Thảo', time: '06/09/2026 - 14:05', reason: 'Khác',
+    original: {
+      cs_transcript: '[vi]Mai có [en]workshop [vi]về [en]presentation [vi]đó.',
+      vi_equivalent: '[vi]Mai có hội thảo về kỹ năng thuyết trình đó.',
+      alignment: [{ source: 'workshop', target: 'hội thảo' }, { source: 'presentation', target: 'thuyết trình' }],
+    } },
 ];

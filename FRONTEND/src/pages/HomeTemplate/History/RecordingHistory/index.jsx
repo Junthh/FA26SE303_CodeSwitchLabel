@@ -70,56 +70,23 @@ function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
   );
 }
 
-// Font-size đồng bộ với StatusBadge của trang Lịch sử Câu đóng góp (text-[11px] font-bold).
-function StatusBadge({ status }) {
-  switch (status) {
-    case "Approved":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#3FA66B]/10 text-[#1F5C3F] border border-[#3FA66B]/25 whitespace-nowrap">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[#3FA66B]" /> Đã duyệt
-        </span>
-      );
-    case "Rejected":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FDEAEA] text-[#C63B3B] border border-[#F3C9C9] whitespace-nowrap">
-          <XCircle className="w-3.5 h-3.5 text-[#C63B3B]" /> Từ chối
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FFF1DE] text-[#A85E12] border border-[#F5DFC0] whitespace-nowrap">
-          <Clock className="w-3.5 h-3.5 text-[#A85E12]" /> Chờ duyệt
-        </span>
-      );
-  }
-}
-
-// Nút "Phản hồi" - hiện đúng số phiếu ĐÃ BỎ / tổng 3 (không phải luôn "3 vote" cứng như trước), và
-// đổi màu theo trạng thái để nhất quán với StatusBadge cùng dòng: xanh lá khi Approved, đỏ khi
-// Rejected, cam khi còn Pending (kể cả khi đã có người từ chối/duyệt nhưng chưa đủ 2 phiếu).
-function FeedbackButton({ status, votedCount, onClick, ariaLabel }) {
-  const styles = {
-    Approved: {
-      bg: "#EAF7EF",
-      border: "rgba(63,166,107,0.25)",
-      text: "#1F5C3F",
-    },
-    Rejected: { bg: "#FDEAEA", border: "#F3C9C9", text: "#C63B3B" },
-    Pending: { bg: "#FFF1DE", border: "#F5DFC0", text: "#A85E12" },
+// Kết quả (trạng thái + số phiếu đã bỏ) - gộp "Trạng thái" và "Phản hồi" cũ, bấm để xem chi tiết
+function ResultButton({ status, votedCount, onClick, ariaLabel }) {
+  const s = {
+    Approved: { bg: "#EAF7EF", border: "rgba(63,166,107,0.25)", text: "#1F5C3F", icon: CheckCircle2, label: "Đã duyệt" },
+    Rejected: { bg: "#FDEAEA", border: "#F3C9C9", text: "#C63B3B", icon: XCircle, label: "Từ chối" },
+    Pending: { bg: "#FFF1DE", border: "#F5DFC0", text: "#A85E12", icon: Clock, label: "Chờ duyệt" },
   }[status];
+  const Icon = s.icon;
   return (
     <button
       onClick={onClick}
       aria-label={ariaLabel}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
-      style={{
-        background: styles.bg,
-        borderColor: styles.border,
-        color: styles.text,
-      }}
+      className="w-[136px] inline-flex items-center justify-center gap-1.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
+      style={{ background: s.bg, borderColor: s.border, color: s.text }}
     >
-      <Eye className="w-3.5 h-3.5 shrink-0" />
-      <span>{votedCount}/3 vote</span>
+      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <span>{s.label} · {votedCount}/3</span>
     </button>
   );
 }
@@ -271,16 +238,15 @@ export default function RecordingHistory() {
         <div ref={listRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
           <table
             aria-label="Lịch sử ghi âm"
-            className="w-full min-w-[1280px] table-fixed border-collapse text-left"
+            className="w-full min-w-[1100px] table-fixed border-collapse text-left"
           >
             <colgroup>
               <col className="w-[4%]" />
               <col className="w-[11%]" />
               <col className="w-[17%]" />
-              <col className="w-[30%]" />
+              <col className="w-[34%]" />
               <col className="w-[20%]" />
-              <col className="w-[9%]" />
-              <col className="w-[9%]" />
+              <col className="w-[14%]" />
             </colgroup>
             <thead className="bg-[#F7F5EF] text-[11px] font-semibold uppercase text-[#9A9CA3] border-b border-[#E5E2D8]">
               <tr>
@@ -290,8 +256,7 @@ export default function RecordingHistory() {
                   "Nhiệm vụ",
                   "Nội dung",
                   "Đoạn ghi âm",
-                  "Trạng thái",
-                  "Phản hồi",
+                  "Kết quả",
                 ].map((heading) => (
                   <th
                     key={heading}
@@ -308,7 +273,7 @@ export default function RecordingHistory() {
               <tbody className="text-xs font-medium">
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={6}
                     className="py-12 px-4 text-center text-sm text-[#6E7078]"
                   >
                     Không có bản ghi phù hợp bộ lọc.
@@ -406,16 +371,11 @@ export default function RecordingHistory() {
                           {variant === "cs" && (
                             <>
                               <td rowSpan={2} className="px-3">
-                                <StatusBadge status={item.status} />
-                              </td>
-                              <td rowSpan={2} className="px-3">
-                                {/* Phản hồi - đúng số vote thật đã bỏ / 3, màu khớp trạng thái cùng dòng
-                                (không phải luôn "3 vote" như trước, cũng không phải màu trung tính cố định). */}
-                                <FeedbackButton
+                                <ResultButton
                                   status={item.status}
                                   votedCount={votedCount}
                                   onClick={() => setDetailItem(item)}
-                                  ariaLabel={`Xem phản hồi cho ${item.id}`}
+                                  ariaLabel={`Xem kết quả kiểm duyệt ${item.id}`}
                                 />
                               </td>
                             </>

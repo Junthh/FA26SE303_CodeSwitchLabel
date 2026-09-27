@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import Pagination from "../../../../components/Pagination/Pagination";
 import useFitPageSize from "../../../../hooks/useFitPageSize";
-import { CheckCircle2, XCircle, Clock, AlertCircle, Eye, X, BarChart3, Search, ArrowRight } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, AlertCircle, X, BarChart3, Search, ArrowRight } from "lucide-react";
 import { SPEAKER_ACCENT as ACCENT, SUCCESS, DANGER, WARNING } from "../../../../constants/theme";
 import { CONTRIBUTION_HISTORY as TEXT_HISTORY } from "../../../../mocks/speaker/history";
 
@@ -67,44 +67,23 @@ function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
   );
 }
 
-function StatusBadge({ status }) {
-  switch (status) {
-    case "Approved":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#3FA66B]/10 text-[#1F5C3F] border border-[#3FA66B]/25 whitespace-nowrap">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[#3FA66B]" /> Đã duyệt
-        </span>
-      );
-    case "Rejected":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FDEAEA] text-[#C63B3B] border border-[#F3C9C9] whitespace-nowrap">
-          <XCircle className="w-3.5 h-3.5 text-[#C63B3B]" /> Từ chối
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FFF1DE] text-[#A85E12] border border-[#F5DFC0] whitespace-nowrap">
-          <Clock className="w-3.5 h-3.5 text-[#A85E12]" /> Chờ duyệt
-        </span>
-      );
-  }
-}
-
-function FeedbackButton({ status, votedCount, onClick, ariaLabel }) {
-  const styles = {
-    Approved: { bg: "#EAF7EF", border: "rgba(63,166,107,0.25)", text: "#1F5C3F" },
-    Rejected: { bg: "#FDEAEA", border: "#F3C9C9", text: "#C63B3B" },
-    Pending: { bg: "#FFF1DE", border: "#F5DFC0", text: "#A85E12" },
+// Kết quả (trạng thái + số phiếu đã bỏ) - gộp "Trạng thái" và "Phản hồi" cũ, bấm để xem chi tiết
+function ResultButton({ status, votedCount, onClick, ariaLabel }) {
+  const s = {
+    Approved: { bg: "#EAF7EF", border: "rgba(63,166,107,0.25)", text: "#1F5C3F", icon: CheckCircle2, label: "Đã duyệt" },
+    Rejected: { bg: "#FDEAEA", border: "#F3C9C9", text: "#C63B3B", icon: XCircle, label: "Từ chối" },
+    Pending: { bg: "#FFF1DE", border: "#F5DFC0", text: "#A85E12", icon: Clock, label: "Chờ duyệt" },
   }[status];
+  const Icon = s.icon;
   return (
     <button
       onClick={onClick}
       aria-label={ariaLabel}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
-      style={{ background: styles.bg, borderColor: styles.border, color: styles.text }}
+      className="w-[136px] inline-flex items-center justify-center gap-1.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
+      style={{ background: s.bg, borderColor: s.border, color: s.text }}
     >
-      <Eye className="w-3.5 h-3.5 shrink-0" />
-      <span>{votedCount}/3 vote</span>
+      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <span>{s.label} · {votedCount}/3</span>
     </button>
   );
 }
@@ -119,7 +98,6 @@ const FILTER_OPTIONS = [
 export default function ContributionHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [detailItem, setDetailItem] = useState(null);
-  const [viewItem, setViewItem] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -210,37 +188,29 @@ export default function ContributionHistory() {
         </div>
 
         <div ref={listRef} className="relative flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
-          <table className="w-full min-w-[1200px] table-fixed border-collapse">
+          <table className="w-full min-w-[1000px] table-fixed border-collapse">
             <thead>
               <tr className="bg-[#F7F5EF] text-[11px] uppercase tracking-wider text-[#9A9CA3] border-b border-[#E5E2D8] font-bold">
                 <th className="py-2.5 px-3 text-center w-[5%]">STT</th>
-                <th className="py-2.5 px-3 text-left w-[43%]">Nội dung</th>
+                <th className="py-2.5 px-3 text-left w-[50%]">Nội dung</th>
                 <th className="py-2.5 px-3 text-left w-[17%]">Phân loại</th>
-                <th className="py-2.5 px-3 text-left w-[15%]">Ngày nộp</th>
-                <th className="py-2.5 px-3 text-left w-[10%]">Trạng thái</th>
-                <th className="py-2.5 px-3 text-left w-[10%]">Phản hồi</th>
+                <th className="py-2.5 px-3 text-left w-[14%]">Ngày nộp</th>
+                <th className="py-2.5 px-3 text-left w-[14%]">Kết quả</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0EEE6] text-xs font-medium">
               {filteredData.length === 0 ? (
-                <tr><td colSpan={6} className="py-10 text-center text-[#9A9CA3] text-sm">Không có mục nào phù hợp bộ lọc.</td></tr>
+                <tr><td colSpan={5} className="py-10 text-center text-[#9A9CA3] text-sm">Không có mục nào phù hợp bộ lọc.</td></tr>
               ) : pageItems.map((item, idx) => {
                 const votedCount = item.reviews.filter((r) => r.decision === "approve" || r.decision === "reject").length;
                 return (
-                  <tr key={item.id} className="hover:bg-[#F7F5EF]/70 transition-colors group h-14">
+                  <tr key={item.id} onClick={() => setDetailItem(item)} className="hover:bg-[#F7F5EF]/70 transition-colors group h-14 cursor-pointer">
                     <td className="px-3 text-center whitespace-nowrap align-middle">
                       <span className="text-[#9A9CA3] font-medium font-mono text-xs">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                     </td>
                     <td className="px-3 text-left align-middle">
-                      <div className="flex items-center gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-[#16171C] truncate leading-5">{item.cs_transcript}</p>
-                          <p className="font-semibold text-[#16171C] truncate leading-5 mt-0.5">{item.vi_equivalent}</p>
-                        </div>
-                        <button onClick={() => setViewItem(item)} aria-label={`Xem đầy đủ hai câu, ${item.id}`} className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[#9A9CA3] hover:text-[#16171C] hover:bg-[#F0EEE6] transition-colors" title="Xem đầy đủ hai câu">
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      <p className="font-semibold text-[#16171C] truncate leading-5">{item.cs_transcript}</p>
+                      <p className="font-semibold text-[#16171C] truncate leading-5 mt-0.5">{item.vi_equivalent}</p>
                     </td>
                     <td className="px-3 text-left align-middle">
                       <span className="px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap border" style={{ background: catStyle(item.category).bg, color: catStyle(item.category).text, borderColor: catStyle(item.category).border }}>{item.category}</span>
@@ -248,10 +218,8 @@ export default function ContributionHistory() {
                     <td className="px-3 text-left whitespace-nowrap align-middle">
                       <span className="text-[#6E7078] font-mono text-[11px]">{item.date}</span>
                     </td>
-                    <td className="px-3 text-left align-middle"><StatusBadge status={item.status} /></td>
-                    {/* Phản hồi: X/3 vote - đồng bộ với RecordingHistory thay vì "Xem"/"Từ chối" của 1 reviewer cũ */}
                     <td className="px-3 text-left align-middle">
-                      <FeedbackButton status={item.status} votedCount={votedCount} onClick={() => setDetailItem(item)} ariaLabel={`Xem phản hồi, ${item.id}`} />
+                      <ResultButton status={item.status} votedCount={votedCount} onClick={(e) => { e.stopPropagation(); setDetailItem(item); }} ariaLabel={`Xem kết quả kiểm duyệt, ${item.id}`} />
                     </td>
                   </tr>
                 );
@@ -264,35 +232,6 @@ export default function ContributionHistory() {
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} accent={ACCENT} />
         </div>
       </div>
-
-      {/* POPUP XEM TOÀN BỘ CÂU - hiện cả câu Việt-Anh, câu Việt, và nghĩa từng từ tiếng Anh */}
-      {viewItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:pl-64" style={{ background: "rgba(22,23,28,0.55)", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }} onClick={() => setViewItem(null)}>
-          <div className="bg-white rounded-[24px] w-full max-w-md max-h-[85vh] overflow-y-auto shadow-[0_20px_50px_rgba(16,17,20,0.25)]" onClick={(e) => e.stopPropagation()}>
-            <div className="h-1.5 w-full" style={{ background: ACCENT }} />
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${ACCENT}1A` }}>
-                    <Eye className="w-[18px] h-[18px]" style={{ color: ACCENT }} />
-                  </div>
-                  <span className="text-[16px] font-bold text-[#16171C]">Nội dung câu</span>
-                </div>
-                <button onClick={() => setViewItem(null)} aria-label="Đóng" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0EEE6] transition-colors flex-shrink-0">
-                  <X className="w-[18px] h-[18px] text-[#6E7078]" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="px-2.5 py-1 rounded-md text-[11px] font-bold border" style={{ background: catStyle(viewItem.category).bg, color: catStyle(viewItem.category).text, borderColor: catStyle(viewItem.category).border }}>{viewItem.category}</span>
-                <span className="text-[11px] text-[#9A9CA3] font-mono">{viewItem.date}</span>
-              </div>
-
-              <SentenceContent item={viewItem} />
-              <button onClick={() => setViewItem(null)} className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold hover:opacity-90 transition-colors" style={{ background: ACCENT }}>Đóng</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* POPUP CHI TIẾT - 3 reviewer, giống RecordingHistory */}
       {detailItem && (() => {
