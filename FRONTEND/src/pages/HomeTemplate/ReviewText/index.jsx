@@ -8,6 +8,8 @@ import {
   Check,
   Flag,
   X,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -43,6 +45,35 @@ function stripLangTags(text) {
   return text.replace(/\[(vi|en)\]/g, "").trim();
 }
 
+// Số từ tiếng Anh tối đa trong 1 câu (sau này lấy từ API cấu hình hệ thống)
+const MAX_EN_WORDS = 3;
+
+// Kiểm tra cặp câu trước khi lưu - cùng tiêu chuẩn với trang duyệt câu của Reviewer
+function editChecks(cs, vi, pairs) {
+  const c = cs.trim();
+  const v = vi.trim();
+  return [
+    {
+      ok: /^\[(vi|en)\]/.test(c) && c.includes("[vi]") && c.includes("[en]"),
+      label: "Câu Việt-Anh bắt đầu bằng thẻ và có đủ [vi], [en]",
+    },
+    {
+      ok: v.startsWith("[vi]") && !v.includes("[en]"),
+      label: "Câu tiếng Việt bắt đầu bằng [vi] và không có [en]",
+    },
+    {
+      ok: /[.?!]$/.test(c) && /[.?!]$/.test(v),
+      label: "Hai câu kết thúc bằng dấu . ! ?",
+    },
+    {
+      ok:
+        pairs.length > 0 &&
+        pairs.every((p) => p.source.trim() && p.target.trim()),
+      label: "Mỗi dòng nghĩa từ có đủ từ tiếng Anh và nghĩa tiếng Việt",
+    },
+  ];
+}
+
 export default function ReviewText() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +92,12 @@ export default function ReviewText() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editCs, setEditCs] = useState(sentence.cs_transcript);
   const [editVi, setEditVi] = useState(sentence.vi_equivalent);
+  const [editPairs, setEditPairs] = useState([]);
+  const checks = editChecks(editCs, editVi, editPairs);
+  const updateEditPair = (i, key, value) =>
+    setEditPairs((prev) =>
+      prev.map((p, idx) => (idx === i ? { ...p, [key]: value } : p)),
+    );
 
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState(null);
@@ -92,6 +129,9 @@ export default function ReviewText() {
   const openEditModal = () => {
     setEditCs(sentence.cs_transcript);
     setEditVi(sentence.vi_equivalent);
+    setEditPairs(
+      sentence.alignment.map(({ source, target }) => ({ source, target })),
+    );
     setShowEditModal(true);
   };
 
@@ -100,6 +140,13 @@ export default function ReviewText() {
       ...prev,
       cs_transcript: editCs,
       vi_equivalent: editVi,
+      alignment: editPairs.map(({ source, target }) => ({
+        source: source.trim(),
+        source_lang: "en",
+        target: target.trim(),
+        target_lang: "vi",
+        relation: "semantic_equivalent",
+      })),
     }));
     setShowEditModal(false);
     toast.success("Đã lưu chỉnh sửa câu.");
@@ -346,7 +393,7 @@ export default function ReviewText() {
           onClick={() => setShowEditModal(false)}
         >
           <div
-            className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden"
+            className="bg-white rounded-[24px] w-full max-w-lg max-h-[92vh] overflow-y-auto"
             style={{ boxShadow: "0 20px 50px rgba(16,17,20,0.25)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -436,6 +483,101 @@ export default function ReviewText() {
                 nhận đúng ngôn ngữ.
               </p>
 
+              <div className="flex items-center justify-between mb-2 mt-4">
+                <p
+                  className="text-[12px] font-semibold"
+                  style={{ color: TEXT_BODY }}
+                >
+                  Nghĩa của từ tiếng Anh{" "}
+                  <span className="font-normal" style={{ color: TEXT_FAINT }}>
+                    · tối đa {MAX_EN_WORDS} từ
+                  </span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditPairs((prev) => [...prev, { source: "", target: "" }])
+                  }
+                  disabled={editPairs.length >= MAX_EN_WORDS}
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
+                  style={{ color: ACCENT }}
+                >
+                  <Plus className="w-3.5 h-3.5" /> Thêm từ
+                </button>
+              </div>
+              <div className="space-y-2">
+                {editPairs.map((pair, i) => (
+                  <div
+                    key={i}
+                    className="grid grid-cols-[minmax(0,2fr)_16px_minmax(0,3fr)_28px] gap-2 items-center"
+                  >
+                    <input
+                      type="text"
+                      value={pair.source}
+                      onChange={(e) => updateEditPair(i, "source", e.target.value)}
+                      placeholder="Từ tiếng Anh"
+                      aria-label={`Từ tiếng Anh ${i + 1}`}
+                      className="px-3 py-2 rounded-[10px] text-[13px] font-mono font-bold outline-none min-w-0"
+                      style={{
+                        color: ACCENT,
+                        border: `1px solid ${pair.source.trim() ? BORDER_LIGHT : DANGER}`,
+                        background: "#FFFFFF",
+                      }}
+                    />
+                    <ArrowRight
+                      className="w-3.5 h-3.5"
+                      style={{ color: TEXT_FAINT }}
+                    />
+                    <input
+                      type="text"
+                      value={pair.target}
+                      onChange={(e) => updateEditPair(i, "target", e.target.value)}
+                      placeholder="Nghĩa tiếng Việt"
+                      aria-label={`Nghĩa tiếng Việt ${i + 1}`}
+                      className="px-3 py-2 rounded-[10px] text-[13px] outline-none min-w-0"
+                      style={{
+                        color: TEXT_HEADING,
+                        border: `1px solid ${pair.target.trim() ? BORDER_LIGHT : DANGER}`,
+                        background: "#FFFFFF",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditPairs((prev) => prev.filter((_, idx) => idx !== i))
+                      }
+                      aria-label="Xoá dòng"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[#FDEAEA]"
+                      style={{ color: TEXT_FAINT }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <ul className="space-y-1 mt-4">
+                {checks.map((c) => (
+                  <li
+                    key={c.label}
+                    className="flex items-center gap-1.5 text-[12px] font-medium"
+                    style={{ color: c.ok ? "#1F5C3F" : "#C63B3B" }}
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: c.ok ? "#3FA66B" : "#E0564F" }}
+                    >
+                      {c.ok ? (
+                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3.5} />
+                      ) : (
+                        <X className="w-2.5 h-2.5 text-white" strokeWidth={3.5} />
+                      )}
+                    </span>
+                    {c.label}
+                  </li>
+                ))}
+              </ul>
+
               <div className="flex justify-end gap-2.5 mt-5">
                 <button
                   onClick={() => setShowEditModal(false)}
@@ -450,7 +592,7 @@ export default function ReviewText() {
                 </button>
                 <button
                   onClick={handleSaveEdit}
-                  disabled={!editCs.trim() || !editVi.trim()}
+                  disabled={checks.some((c) => !c.ok)}
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13.5px] font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   style={{
                     background: ACCENT,

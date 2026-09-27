@@ -27,7 +27,6 @@ export const PAGE_TITLES = {
   '/reviewer/task': 'Nhiệm vụ',
   '/reviewer/recording': 'Kiểm duyệt ghi âm',
   '/reviewer/contribution': 'Đề xuất câu',
-  '/reviewer/script': 'Kiểm duyệt câu lỗi',
   '/reviewer/history-recording': 'Lịch sử kiểm duyệt ghi âm',
   '/reviewer/history-contribution': 'Lịch sử duyệt đề xuất câu',
   '/reviewer/profile': 'Hồ sơ cá nhân',
