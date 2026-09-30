@@ -85,7 +85,7 @@ function AudioBlock({ label, src }) {
         {isPlaying ? <Pause className="w-3.5 h-3.5" fill="currentColor" /> : <Play className="w-3.5 h-3.5 ml-0.5" fill="currentColor" />}
       </button>
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between text-[11.5px] font-mono font-semibold mb-1">
+        <div className="flex justify-between type-caption tabular-nums mb-1">
           <span style={{ color: TEXT_BODY }}>{label}</span>
           <span style={{ color: TEXT_HEADING }}>{formatTime(duration - currentTime)}</span>
         </div>
@@ -136,13 +136,13 @@ export default function SubmitTask() {
         className="rounded-2xl p-6 space-y-4"
         style={{ background: "#FFFFFF", border: `1px solid ${BORDER_LIGHT}`, boxShadow: "0 1px 3px rgba(16,17,20,0.04)" }}
       >
-        <h3 className="font-bold text-[15px]" style={{ color: TEXT_HEADING }}>Kiểm tra lần cuối trước khi gửi</h3>
+        <h3 className="type-card-title" style={{ color: TEXT_HEADING }}>Kiểm tra lần cuối trước khi gửi</h3>
 
         {/* Câu Việt-Anh + audio tương ứng */}
         <div className="space-y-2">
-          <p className="text-[11px] font-bold" style={{ color: AUDIO_PRIMARY }}>CÂU VIỆT-ANH</p>
+          <p className="text-caption font-label" style={{ color: AUDIO_PRIMARY }}>Câu Việt-Anh</p>
           <div className="p-4 rounded-xl" style={{ background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` }}>
-            <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: TEXT_HEADING }}>
+            <p className="type-reading-sm" style={{ color: TEXT_HEADING }}>
               "{csSegments.map((seg, i) =>
                 seg.lang === "en" ? (
                   <span key={i} style={{ color: ACCENT }}>{seg.text}</span>
@@ -157,9 +157,9 @@ export default function SubmitTask() {
 
         {/* Câu tiếng Việt + audio tương ứng */}
         <div className="space-y-2">
-          <p className="text-[11px] font-bold" style={{ color: AUDIO_PRIMARY }}>CÂU TIẾNG VIỆT</p>
+          <p className="text-caption font-label" style={{ color: AUDIO_PRIMARY }}>Câu tiếng Việt</p>
           <div className="p-4 rounded-xl" style={{ background: SURFACE_PAGE, border: `1px solid ${BORDER_LIGHT}` }}>
-            <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: TEXT_HEADING }}>
+            <p className="type-reading-sm" style={{ color: TEXT_HEADING }}>
               "{stripLangTags(viTranscript)}"
             </p>
           </div>
@@ -171,7 +171,7 @@ export default function SubmitTask() {
       <div className="flex gap-3">
         <button
           onClick={() => navigate("/record-speech")}
-          className="flex-1 py-4 rounded-2xl text-[13.5px] font-bold flex items-center justify-center gap-2 transition-all"
+          className="flex-1 py-4 rounded-2xl text-ui font-label flex items-center justify-center gap-2 transition-all"
           style={{
             background: "#FFFFFF",
             border: `1px solid ${BORDER_LIGHT}`,
@@ -184,7 +184,7 @@ export default function SubmitTask() {
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="flex-[2] py-4 text-white font-bold text-[15px] rounded-2xl hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.99] transition-all"
+          className="flex-[2] py-4 text-white font-label text-body rounded-2xl hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.99] transition-all"
           style={{ background: ACCENT, boxShadow: `0 10px 24px ${ACCENT}40` }}
         >
           {isSubmitting ? <span>Đang gửi...</span> : (<><Send className="w-4 h-4" /> Gửi bản ghi</>)}

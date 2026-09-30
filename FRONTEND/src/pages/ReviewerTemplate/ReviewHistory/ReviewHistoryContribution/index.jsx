@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import Pagination from "../../../../components/Pagination/Pagination";
-import useFitPageSize from "../../../../hooks/useFitPageSize";
 import { CheckCircle2, XCircle, Clock, AlertCircle, Search, X, BarChart3, ArrowRight } from "lucide-react";
 import { REVIEWER_ACCENT as ACCENT } from "../../../../constants/theme";
 import { REVIEWED_PROPOSALS as TEXT_HISTORY } from "../../../../mocks/reviewer/history";
@@ -43,7 +42,7 @@ const TYPE_FILTERS = [
 
 function InlineLabel({ variant }) {
   return (
-    <span className="text-[9px] font-bold w-9 h-[18px] text-center shrink-0 rounded-md inline-flex items-center justify-center text-white" style={{ background: variant === "cs" ? ACCENT : "#8B8D95", letterSpacing: "0.02em" }}>
+    <span className="text-tag font-emphasis w-9 h-4 text-center shrink-0 rounded inline-flex items-center justify-center text-white" style={{ background: variant === "cs" ? ACCENT : "#8B8D95", letterSpacing: "0.02em" }}>
       {variant === "cs" ? "VI-EN" : "VI"}
     </span>
   );
@@ -64,10 +63,10 @@ function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
         <Icon className="w-4 h-4" style={{ color: accent }} />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold text-[#6E7078]">{label}</p>
-        <p className="text-[17px] font-bold text-[#16171C] font-mono leading-tight">
+        <p className="type-label text-[#6E7078]">{label}</p>
+        <p className="type-stat text-[#16171C]">
           {value}
-          {pct !== undefined && <span className="text-[11px] font-semibold ml-1" style={{ color: accent }}>{pct}%</span>}
+          {pct !== undefined && <span className="type-label ml-1" style={{ color: accent }}>{pct}%</span>}
         </p>
       </div>
     </div>
@@ -77,12 +76,12 @@ function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
 // Quyết định của chính reviewer đang đăng nhập
 function MyDecision({ review }) {
   if (review?.decision === "approve") {
-    return <span className="w-[104px] inline-flex items-center justify-center gap-1.5 py-1 rounded-full text-[11px] font-bold bg-[#3FA66B]/10 text-[#1F5C3F] border border-[#3FA66B]/25 whitespace-nowrap"><CheckCircle2 className="w-3.5 h-3.5 text-[#3FA66B]" /> Đã duyệt</span>;
+    return <span className="w-[92px] h-6 inline-flex items-center justify-center gap-1 rounded-full type-caption bg-[#3FA66B]/10 text-[#1F5C3F] border border-[#3FA66B]/25 whitespace-nowrap"><CheckCircle2 className="w-3 h-3 text-[#3FA66B]" /> Đã duyệt</span>;
   }
   if (review?.decision === "reject") {
-    return <span className="w-[104px] inline-flex items-center justify-center gap-1.5 py-1 rounded-full text-[11px] font-bold bg-[#FDEAEA] text-[#C63B3B] border border-[#F3C9C9] whitespace-nowrap"><XCircle className="w-3.5 h-3.5 text-[#C63B3B]" /> Từ chối</span>;
+    return <span className="w-[92px] h-6 inline-flex items-center justify-center gap-1 rounded-full type-caption bg-[#FDEAEA] text-[#C63B3B] border border-[#F3C9C9] whitespace-nowrap"><XCircle className="w-3 h-3 text-[#C63B3B]" /> Từ chối</span>;
   }
-  return <span className="text-[11.5px] text-[#9A9CA3]">-</span>;
+  return <span className="text-caption text-[#9A9CA3]">-</span>;
 }
 
 // Kết quả chung (trạng thái + số phiếu đã bỏ) - gộp "Trạng thái" và "Phản hồi" cũ, bấm để xem chi tiết
@@ -97,10 +96,10 @@ function ResultButton({ status, votedCount, onClick, ariaLabel }) {
     <button
       onClick={onClick}
       aria-label={ariaLabel}
-      className="w-[136px] inline-flex items-center justify-center gap-1.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
+      className="w-[128px] h-6 inline-flex items-center justify-center gap-1 rounded-full border type-caption transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
       style={{ background: s.bg, borderColor: s.border, color: s.text }}
     >
-      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <Icon className="w-3 h-3 shrink-0" />
       <span>{s.label} · {votedCount}/3</span>
     </button>
   );
@@ -123,24 +122,24 @@ function AlignmentList({ alignment, muted }) {
 
 // Bảng câu chỉ xem: 1 cột (câu đóng góp / câu bị báo lỗi) hoặc 2 cột (bản gốc - bản sau)
 function SentenceTable({ columns }) {
-  const cols = columns.length === 2 ? "grid-cols-[56px_1fr_1fr]" : "grid-cols-[56px_1fr]";
+  const cols = columns.length === 2 ? "grid-cols-[64px_1fr_1fr]" : "grid-cols-[64px_1fr]";
   return (
-    <div className="rounded-xl border border-[#E5E2D8] overflow-hidden text-[12px]">
-      <div className={`grid ${cols} bg-[#F7F5EF] text-[10.5px] font-bold text-[#9A9CA3]`}>
+    <div className="rounded-xl border border-[#E5E2D8] overflow-hidden text-meta">
+      <div className={`grid ${cols} bg-[#F7F5EF] text-caption font-label text-[#9A9CA3]`}>
         <span className="px-2.5 py-1.5" />
         {columns.map((c) => <span key={c.title} className="px-2.5 py-1.5">{c.title}</span>)}
       </div>
       <div className={`grid ${cols} border-t border-[#F0EEE6]`}>
         <span className="px-2.5 py-2"><InlineLabel variant="cs" /></span>
-        {columns.map((c) => <p key={c.title} className={`px-2.5 py-2 font-mono leading-5 break-words min-w-0 ${c.muted ? "text-[#6E7078]" : "text-[#16171C]"}`}>{c.data.cs_transcript}</p>)}
+        {columns.map((c) => <p key={c.title} className={`px-2.5 py-2 type-body break-words min-w-0 ${c.muted ? "text-[#6E7078]" : "text-[#16171C]"}`}>{c.data.cs_transcript}</p>)}
       </div>
       <div className={`grid ${cols} border-t border-[#F0EEE6]`}>
         <span className="px-2.5 py-2"><InlineLabel variant="vi" /></span>
-        {columns.map((c) => <p key={c.title} className={`px-2.5 py-2 font-mono leading-5 break-words min-w-0 ${c.muted ? "text-[#6E7078]" : "text-[#16171C]"}`}>{c.data.vi_equivalent}</p>)}
+        {columns.map((c) => <p key={c.title} className={`px-2.5 py-2 type-body break-words min-w-0 ${c.muted ? "text-[#6E7078]" : "text-[#16171C]"}`}>{c.data.vi_equivalent}</p>)}
       </div>
       {columns.some((c) => c.data.alignment.length > 0) && (
         <>
-          <p className="px-2.5 py-1.5 border-t border-[#F0EEE6] bg-[#F7F5EF] text-[10.5px] font-bold text-[#9A9CA3]">Nghĩa tiếng Việt của các từ tiếng Anh</p>
+          <p className="px-2.5 py-1.5 border-t border-[#F0EEE6] bg-[#F7F5EF] text-caption font-label text-[#9A9CA3]">Nghĩa tiếng Việt của các từ tiếng Anh</p>
           <div className={`grid ${cols} border-t border-[#F0EEE6]`}>
             <span />
             {columns.map((c) => <div key={c.title} className="px-2.5 py-2 min-w-0"><AlignmentList alignment={c.data.alignment} muted={c.muted} /></div>)}
@@ -203,8 +202,8 @@ export default function ReviewHistoryContribution() {
         [item.author, item.reason || "", c.cs_transcript, c.vi_equivalent].some((text) => text.toLocaleLowerCase("vi").includes(query));
     });
   }, [withStatus, typeFilter, statusFilter, categoryFilter, searchTerm]);
-  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
-  const [listRef, itemsPerPage] = useFitPageSize(10, [filteredData.length > 0], "tbody > tr");
+  // Cố định 10 mục mỗi trang; trang đầy thì các dòng giãn đều hết khung (màn thấp thì bảng cuộn bên trong)
+  const itemsPerPage = 10;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const pageItems = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -234,33 +233,33 @@ export default function ReviewHistoryContribution() {
                     key={f.value}
                     type="button"
                     onClick={() => changeFilter(setTypeFilter)(f.value)}
-                    className={`h-8 px-3 rounded-full text-xs font-bold border transition-colors cursor-pointer whitespace-nowrap ${active ? "text-white border-transparent" : "bg-white border-[#E5E2D8] text-[#6E7078] hover:bg-[#F7F5EF]"}`}
+                    className={`h-8 px-3 rounded-full text-meta font-label border transition-colors cursor-pointer whitespace-nowrap ${active ? "text-white border-transparent" : "bg-white border-[#E5E2D8] text-[#6E7078] hover:bg-[#F7F5EF]"}`}
                     style={active ? { background: ACCENT } : undefined}
                   >
-                    {f.label} <span className={`ml-1 font-mono ${active ? "text-white/80" : "text-[#9A9CA3]"}`}>{typeCounts[f.value]}</span>
+                    {f.label} <span className={`ml-1 tabular-nums ${active ? "text-white/80" : "text-[#9A9CA3]"}`}>{typeCounts[f.value]}</span>
                   </button>
                 );
               })}
             </div>
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9A9CA3]" />
-              <input aria-label="Tìm câu" value={searchTerm} onChange={(event) => changeFilter(setSearchTerm)(event.target.value)} placeholder="Tìm người gửi, lý do, nội dung..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5E2D8] text-[13px] leading-4 focus:outline-none focus:border-blue-500" />
+              <input aria-label="Tìm câu" value={searchTerm} onChange={(event) => changeFilter(setSearchTerm)(event.target.value)} placeholder="Tìm người gửi, lý do, nội dung..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5E2D8] text-ui leading-4 focus:outline-none focus:border-blue-500" />
             </div>
             {typeFilter === "contribution" && (
-              <select aria-label="Lọc phân loại" value={categoryFilter} onChange={(event) => changeFilter(setCategoryFilter)(event.target.value)} className="min-w-0 rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-xs text-[#16171C]">
+              <select aria-label="Lọc phân loại" value={categoryFilter} onChange={(event) => changeFilter(setCategoryFilter)(event.target.value)} className="min-w-0 rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-meta text-[#16171C]">
                 <option value="all">Tất cả phân loại</option>
                 {[...new Set(TEXT_HISTORY.map((item) => item.category))].map((category) => <option key={category} value={category}>{category}</option>)}
               </select>
             )}
-            <select aria-label="Lọc kết quả" value={statusFilter} onChange={(event) => changeFilter(setStatusFilter)(event.target.value)} className="rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-xs text-[#16171C]">
+            <select aria-label="Lọc kết quả" value={statusFilter} onChange={(event) => changeFilter(setStatusFilter)(event.target.value)} className="rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-meta text-[#16171C]">
               {FILTER_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </div>
         </div>
 
         {/* Chiều cao mỗi dòng cố định; nội dung đầy đủ, nghĩa từ và phiếu 3 reviewer chỉ có trong popup chi tiết */}
-        <div ref={listRef} className="relative flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
-          <table className="w-full min-w-[1100px] border-collapse table-fixed">
+        <div className="relative flex-1 min-h-0 overflow-auto">
+          <table className={`w-full min-w-[1100px] border-collapse table-fixed ${pageItems.length === itemsPerPage ? "h-full" : ""}`}>
             <colgroup>
               <col className="w-[5%]" />
               <col className="w-[11%]" />
@@ -270,34 +269,34 @@ export default function ReviewHistoryContribution() {
               <col className="w-[16%]" />
             </colgroup>
             <thead>
-              <tr className="bg-[#F7F5EF] text-[11px] uppercase tracking-wider text-[#9A9CA3] border-b border-[#E5E2D8] font-bold">
+              <tr className="bg-[#F7F5EF] type-label text-[#9A9CA3] border-b border-[#E5E2D8]">
                 <th className="py-2.5 px-3 text-center">STT</th>
                 <th className="py-2.5 px-3 text-left">Loại</th>
                 <th className="py-2.5 px-3 text-left">Nội dung</th>
-                <th className="py-2.5 px-3 text-left">Người gửi</th>
+                <th className="py-2.5 px-3 text-left">Speaker / Thời gian</th>
                 <th className="py-2.5 px-3 text-left">Bạn</th>
                 <th className="py-2.5 px-3 text-left">Kết quả</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0EEE6] text-xs font-medium">
+            <tbody className="divide-y divide-[#F0EEE6] type-ui">
               {filteredData.length === 0 ? (
-                <tr><td colSpan={6} className="py-10 text-center text-[#9A9CA3] text-sm">Không có mục nào phù hợp bộ lọc.</td></tr>
+                <tr><td colSpan={6} className="py-10 text-center text-[#9A9CA3] text-body">Không có mục nào phù hợp bộ lọc.</td></tr>
               ) : pageItems.map((item, idx) => {
                 const c = contentOf(item);
                 const tag = tagOf(item);
                 return (
-                  <tr key={item.id} onClick={() => setDetailItem(item)} className="hover:bg-[#F7F5EF]/70 transition-colors h-14 cursor-pointer">
-                    <td className="px-3 text-center"><span className="text-[#9A9CA3] font-medium font-mono text-xs">{(currentPage - 1) * itemsPerPage + idx + 1}</span></td>
+                  <tr key={item.id} onClick={() => setDetailItem(item)} className="hover:bg-[#F7F5EF]/70 transition-colors h-13 cursor-pointer">
+                    <td className="px-3 text-center"><span className="text-[#9A9CA3] type-meta">{(currentPage - 1) * itemsPerPage + idx + 1}</span></td>
                     <td className="px-3 text-left">
-                      <span className="px-2 py-1 rounded-md text-[11px] font-bold whitespace-nowrap" style={{ background: tag.bg, color: tag.text }}>{tag.label}</span>
+                      <span className="w-[84px] h-6 inline-flex items-center justify-center rounded-md type-caption whitespace-nowrap" style={{ background: tag.bg, color: tag.text }}>{tag.label}</span>
                     </td>
                     <td className="px-3 text-left">
-                      <p className="font-normal font-mono text-[#16171C] truncate leading-5">{c.cs_transcript}</p>
-                      <p className="font-normal font-mono text-[#6E7078] truncate leading-5 mt-0.5">{c.vi_equivalent}</p>
+                      <p className="text-meta font-regular text-[#16171C] truncate leading-5">{c.cs_transcript}</p>
+                      <p className="text-meta font-regular text-[#16171C] truncate leading-5 mt-0.5">{c.vi_equivalent}</p>
                     </td>
                     <td className="px-3 text-left">
-                      <p className="font-semibold text-[#16171C] truncate">{item.author}</p>
-                      <p className="text-[#9A9CA3] font-mono text-[11px] mt-0.5">{item.date}</p>
+                      <p className="font-label text-[#16171C] truncate">{item.author}</p>
+                      <p className="text-[#9A9CA3] type-meta mt-0.5">{item.date}</p>
                     </td>
                     <td className="px-3 text-left"><MyDecision review={item.reviews.find((r) => r.reviewer === ME)} /></td>
                     <td className="px-3 text-left">
@@ -336,24 +335,24 @@ export default function ReviewHistoryContribution() {
                     <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${accent}1A` }}>
                       <ResultIcon className="w-[18px] h-[18px]" style={{ color: accent }} />
                     </div>
-                    <span className="px-2 py-1 rounded-md text-[11px] font-bold" style={{ background: tag.bg, color: tag.text }}>{tag.label}</span>
-                    <span className="text-[16px] font-bold text-[#16171C]">Chi tiết</span>
+                    <span className="px-2 py-1 rounded-md text-caption font-label" style={{ background: tag.bg, color: tag.text }}>{tag.label}</span>
+                    <span className="type-section text-[#16171C]">Chi tiết</span>
                   </div>
                   <button onClick={() => setDetailItem(null)} aria-label="Đóng" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0EEE6] transition-colors flex-shrink-0 cursor-pointer">
                     <X className="w-[18px] h-[18px] text-[#6E7078]" />
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap mb-4 text-[11.5px] text-[#6E7078]">
-                  <span className="font-bold text-[#16171C]">{detailItem.author}</span>
+                <div className="flex items-center gap-2 flex-wrap mb-4 type-meta text-[#6E7078]">
+                  <span className="font-label text-[#16171C]">{detailItem.author}</span>
                   {detailItem.reason && <span>· Lý do: {detailItem.reason}</span>}
-                  <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold border" style={{ background: catStyle(detailItem.category).bg, color: catStyle(detailItem.category).text, borderColor: catStyle(detailItem.category).border }}>{detailItem.category}</span>
-                  <span className="font-mono text-[11px] text-[#9A9CA3]">{detailItem.date}</span>
+                  <span className="px-2 py-0.5 rounded-md text-caption font-label border" style={{ background: catStyle(detailItem.category).bg, color: catStyle(detailItem.category).text, borderColor: catStyle(detailItem.category).border }}>{detailItem.category}</span>
+                  <span className="type-meta text-[#9A9CA3]">{detailItem.date}</span>
                 </div>
 
                 <SentenceTable columns={detailColumns(detailItem, myReview)} />
 
-                <p className="text-xs font-bold text-[#16171C] mt-4 mb-2">Phiếu của 3 reviewer</p>
+                <p className="text-meta font-label text-[#16171C] mt-4 mb-2">Phiếu của 3 reviewer</p>
                 <div className="flex flex-col gap-2">
                   {detailItem.reviews.map((r) => {
                     const isReject = r.decision === "reject";
@@ -368,19 +367,19 @@ export default function ReviewHistoryContribution() {
                       : r.decision === "not_needed" ? "Không cần đánh giá · 2 reviewer đầu đã đồng thuận" : "Chưa đánh giá";
                     return (
                       <div key={r.reviewer} className="flex gap-2.5 px-3 py-2.5 rounded-xl border" style={{ background: rowBg, borderColor: rowBorder }}>
-                        <span className="h-6 px-1.5 min-w-6 rounded-full text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0" style={{ background: c }}>{r.reviewer}</span>
+                        <span className="h-6 px-1.5 min-w-6 rounded-full text-white text-caption font-label flex items-center justify-center flex-shrink-0" style={{ background: c }}>{r.reviewer}</span>
                         <div className="min-w-0">
-                          <p className="text-[12.5px] font-bold" style={{ color: isApprove ? "#1F5C3F" : idle ? "#6E7078" : c }}>
+                          <p className="text-meta font-label" style={{ color: isApprove ? "#1F5C3F" : idle ? "#6E7078" : c }}>
                             {r.reviewer === ME && <span className="mr-1">Bạn ·</span>}{label}
                           </p>
-                          {r.reason && <p className="text-[12px] text-[#6E7078] mt-0.5">{r.reason}</p>}
+                          {r.reason && <p className="text-meta text-[#6E7078] mt-0.5">{r.reason}</p>}
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <button onClick={() => setDetailItem(null)} className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer" style={{ background: ACCENT }}>Đóng</button>
+                <button onClick={() => setDetailItem(null)} className="w-full mt-5 py-3 text-white rounded-xl text-body font-label transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer" style={{ background: ACCENT }}>Đóng</button>
               </div>
             </div>
           </div>

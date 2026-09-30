@@ -45,8 +45,8 @@ function SentencePair({ sentence, detail = false }) {
     <div className={detail ? 'space-y-3 mb-4' : 'space-y-0.5'}>
       {['VI-EN', 'VI'].map((label, index) => (
         <div key={label} className={`flex items-center gap-2 ${detail ? 'bg-[#F7F5EF] border border-[#E5E2D8] rounded-xl p-3.5' : ''}`}>
-          <span className="w-10 shrink-0 rounded text-center text-[9px] leading-4 font-bold text-white" style={{ background: index === 0 ? ACCENT : '#8C8D96' }}>{label}</span>
-          <p className={detail ? 'text-sm font-bold leading-relaxed' : 'truncate text-xs leading-4 font-bold'}>
+          <span className="w-11 shrink-0 rounded text-center text-caption leading-4 font-label text-white" style={{ background: index === 0 ? ACCENT : '#8C8D96' }}>{label}</span>
+          <p className={detail ? 'type-body' : 'truncate type-ui'}>
             {index === 0 ? <SentenceText sentence={sentence} /> : sentence.viText || sentence.text}
           </p>
         </div>
@@ -58,14 +58,14 @@ function SentencePair({ sentence, detail = false }) {
 function StatBar({ label, count, percent, color, compact = false }) {
   return (
     <div>
-      <div className="flex justify-between text-[11.5px] mb-1">
-        <span className="text-[#16171C] font-semibold truncate pr-2">{label}</span>
-        <span className="font-bold text-[#16171C] font-mono shrink-0">{compact && <span className="font-normal text-[#9A9CA3] mr-2">{count}</span>}{percent}%</span>
+      <div className="flex justify-between items-baseline mb-1">
+        <span className="type-ui text-[#16171C] truncate pr-2">{label}</span>
+        <span className="type-label text-[#16171C] tabular-nums shrink-0">{compact && <span className="font-regular text-[#9A9CA3] mr-2">{count}</span>}{percent}%</span>
       </div>
       <div className="w-full bg-[#E5E2D8] h-[6px] rounded-full overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${percent}%`, background: color }} />
       </div>
-      {!compact && <p className="text-[10px] text-[#9A9CA3] mt-1">Tổng số lần ghi nhận: {count}</p>}
+      {!compact && <p className="type-meta text-[#9A9CA3] mt-1">Tổng số lần ghi nhận: {count}</p>}
     </div>
   );
 }
@@ -81,7 +81,7 @@ function Panel({ children, className = '' }) {
 function PanelHeader({ icon: Icon, iconColor, title, right }) {
   return (
     <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-[#16171C] text-[13.5px] flex items-center gap-1.5">
+      <h3 className="type-card-title text-[#16171C] flex items-center gap-1.5">
         <Icon className="w-[14px] h-[14px]" style={{ color: iconColor }} /> {title}
       </h3>
       {right}
@@ -128,9 +128,9 @@ export default function ReviewDashboard() {
         ].map(({ label, value, detail, icon: Icon, color, background }) => (
           <Panel key={label} className="!px-4 !py-2 flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-medium text-[#6E7078]">{label}</p>
-              <p className="text-[24px] leading-none font-bold tabular-nums text-[#16171C] mt-1">{value.toLocaleString('vi-VN')}</p>
-              <p className="text-[11px] text-[#6E7078] mt-1">{detail}</p>
+              <p className="text-meta font-label text-[#6E7078]">{label}</p>
+              <p className="type-stat text-[#16171C] mt-1">{value.toLocaleString('vi-VN')}</p>
+              <p className="type-meta text-[#6E7078] mt-1">{detail}</p>
             </div>
             <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background }}>
               <Icon className="w-5 h-5" style={{ color }} />
@@ -142,7 +142,7 @@ export default function ReviewDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 items-stretch lg:flex-[0.75_0_auto]">
         <Panel className="lg:col-span-3 flex flex-col">
           <PanelHeader icon={FolderKanban} iconColor={ACCENT} title="Tiến độ nhiệm vụ"
-            right={<span className="text-[11px] text-[#6E7078]">{incompleteTasks.length} nhiệm vụ đang thực hiện</span>} />
+            right={<span className="type-meta text-[#6E7078]">{incompleteTasks.length} nhiệm vụ đang thực hiện</span>} />
           <div className="grid auto-rows-fr gap-2 flex-1">
             {[...ongoingTasks].sort((a, b) => a.daysLeft - b.daysLeft).map((task) => {
               const percent = Math.round((task.reviewed / task.target) * 100);
@@ -151,10 +151,10 @@ export default function ReviewDashboard() {
                 <div key={task.title} className={`rounded-xl border px-3 py-1 lg:flex lg:items-center lg:gap-3 ${urgent ? 'border-[#F5DFC0] bg-[#FFFAF1]' : 'border-[#F0EEE6]'}`}>
                   <div className="flex items-center justify-between gap-3 min-w-0 flex-1">
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-[#16171C]">{task.title}</p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px]">
+                      <p className="text-ui font-emphasis text-[#16171C]">{task.title}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 type-meta">
                         <span className="text-[#6E7078] flex items-center gap-1"><Clock className="w-3 h-3" /> Hạn {task.deadline}</span>
-                        {urgent && <span className="flex items-center gap-1 font-semibold text-[#A85E12]"><AlertTriangle className="w-3 h-3" /> Còn {task.daysLeft} ngày</span>}
+                        {urgent && <span className="flex items-center gap-1 font-label text-[#A85E12]"><AlertTriangle className="w-3 h-3" /> Còn {task.daysLeft} ngày</span>}
                       </div>
                     </div>
                     <button onClick={() => navigate(`/reviewer/recording?task=${encodeURIComponent(task.title)}`)} className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#EDF3FF]" style={{ color: ACCENT }} aria-label={`Kiểm duyệt ${task.title}`}>
@@ -163,7 +163,7 @@ export default function ReviewDashboard() {
                   </div>
                   <div className="flex items-center gap-3 mt-2 lg:mt-0 lg:w-[32%] lg:flex-col lg:items-stretch lg:gap-1">
                     <div className="w-full h-1.5 rounded-full bg-[#EAE7DF] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${percent}%`, background: percent > 50 ? RANK_COLORS[3] : RANK_COLORS[2] }} /></div>
-                    <span className="text-[11px] font-bold tabular-nums text-[#6E7078] shrink-0">{task.reviewed}/{task.target} bản · {percent}%</span>
+                    <span className="type-meta text-[#6E7078] shrink-0">{task.reviewed}/{task.target} bản · <span className="font-emphasis text-[#16171C]">{percent}%</span></span>
                   </div>
                 </div>
               );
@@ -171,7 +171,7 @@ export default function ReviewDashboard() {
           </div>
         </Panel>
         <Panel className="lg:col-span-2 flex flex-col">
-          <PanelHeader icon={PieChart} iconColor={ACCENT} title="Lý do từ chối phổ biến" right={<span className="text-[10.5px] text-[#9A9CA3]">Hệ thống</span>} />
+          <PanelHeader icon={PieChart} iconColor={ACCENT} title="Lý do từ chối phổ biến" right={<span className="type-meta text-[#9A9CA3]">Hệ thống</span>} />
           <div className="flex flex-col justify-between gap-3 mt-2 flex-1">
             {REJECT_STATS.map((stat) => <StatBar key={stat.label} label={stat.label} count={stat.count} percent={stat.percentage} color={stat.color} compact />)}
           </div>
@@ -182,26 +182,26 @@ export default function ReviewDashboard() {
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-1">
           <div role="tablist" aria-label="Thống kê từ chối" className="flex flex-wrap gap-1 rounded-lg bg-[#F7F5EF] p-1">
             {[['sentences', 'Câu bị từ chối nhiều nhất'], ['speakers', 'Người bị từ chối nhiều nhất']].map(([key, label]) => (
-              <button key={key} id={`rejection-tab-${key}`} role="tab" aria-selected={rejectionTab === key} aria-controls="rejection-panel" onClick={() => setRejectionTab(key)} className={`px-3 py-2 rounded-md text-xs font-bold transition-colors ${rejectionTab === key ? 'bg-white shadow-sm' : 'text-[#6E7078] hover:text-[#16171C]'}`} style={rejectionTab === key ? { color: ACCENT } : undefined}>{label}</button>
+              <button key={key} id={`rejection-tab-${key}`} role="tab" aria-selected={rejectionTab === key} aria-controls="rejection-panel" onClick={() => setRejectionTab(key)} className={`px-3 py-2 rounded-md text-meta font-label transition-colors ${rejectionTab === key ? 'bg-white shadow-sm' : 'text-[#6E7078] hover:text-[#16171C]'}`} style={rejectionTab === key ? { color: ACCENT } : undefined}>{label}</button>
             ))}
           </div>
-          <span className="text-[11px] text-[#9A9CA3]">7 ngày qua</span>
+          <span className="type-meta text-[#9A9CA3]">7 ngày qua</span>
         </div>
         <div id="rejection-panel" role="tabpanel" aria-labelledby={`rejection-tab-${rejectionTab}`} className="min-h-[225px] flex-1 grid auto-rows-fr divide-y divide-[#F0EEE6]">
           {(rejectionTab === 'sentences' ? pagedSentences : pagedSpeakers).map((item, idx) => (
             <div key={item.id || item.name} className="flex items-center gap-3 px-4 py-1 hover:bg-[#FAF9F6]">
-              <span className="w-5 text-center text-xs tabular-nums text-[#9A9CA3] shrink-0">{((rejectionTab === 'sentences' ? sentencePage : speakerPage) - 1) * ITEMS_PER_PAGE + idx + 1}</span>
+              <span className="w-5 text-center text-meta tabular-nums text-[#9A9CA3] shrink-0">{((rejectionTab === 'sentences' ? sentencePage : speakerPage) - 1) * ITEMS_PER_PAGE + idx + 1}</span>
               <div className="min-w-0 flex-1">
                 {rejectionTab === 'sentences' ? (
                   <SentencePair sentence={item} />
                 ) : (
                   <>
-                    <p className="text-xs leading-[18px] font-bold text-[#16171C] truncate">{item.name}</p>
-                    <p className="text-[11px] leading-[18px] text-[#6E7078] truncate">Lý do phổ biến: {categoryShort(item.topReason)}</p>
+                    <p className="text-meta leading-[18px] font-label text-[#16171C] truncate">{item.name}</p>
+                    <p className="type-meta text-[#6E7078] truncate">Lý do phổ biến: {categoryShort(item.topReason)}</p>
                   </>
                 )}
               </div>
-              <span className="text-[11px] font-bold tabular-nums text-[#16171C] bg-[#F0EEE6] rounded-md px-2 py-1 shrink-0">{item.count} lần</span>
+              <span className="type-label tabular-nums text-[#16171C] bg-[#F0EEE6] rounded-md px-2 py-1 shrink-0">{item.count} lần</span>
               <button onClick={() => rejectionTab === 'sentences' ? setSentenceDetail(item) : setSpeakerDetail(item)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#6E7078] hover:bg-[#EDF3FF] shrink-0" aria-label={`Xem thống kê ${item.text || item.name}`}><Eye className="w-4 h-4" /></button>
             </div>
           ))}
@@ -222,20 +222,20 @@ export default function ReviewDashboard() {
                   <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: POPUP_ACCENT_SOFT }}>
                     <FileWarning className="w-[18px] h-[18px]" style={{ color: POPUP_ACCENT }} />
                   </div>
-                  <span className="text-[16px] font-bold text-[#16171C]">Thống kê từ chối</span>
+                  <span className="type-section text-[#16171C]">Thống kê từ chối</span>
                 </div>
                 <button onClick={() => setSentenceDetail(null)} aria-label="Đóng" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0EEE6] transition-colors flex-shrink-0">
                   <X className="w-[18px] h-[18px] text-[#6E7078]" />
                 </button>
               </div>
               <SentencePair sentence={sentenceDetail} detail />
-              <p className="text-[11.5px] font-semibold text-[#6E7078] mb-2.5">Phân bố theo lý do · {sentenceDetail.count} lần bị từ chối</p>
+              <p className="type-label text-[#6E7078] mb-2.5">Phân bố theo lý do · {sentenceDetail.count} lần bị từ chối</p>
               <div className="space-y-3 mb-4">
                 {[...sentenceDetail.breakdown].sort((a, b) => b.count - a.count).map((b, i) => (
                   <StatBar key={i} label={b.category} count={`${b.count} lần`} percent={Math.round((b.count / sentenceDetail.count) * 100)} color={rankColor(i)} />
                 ))}
               </div>
-              <button onClick={() => setSentenceDetail(null)} className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]" style={{ background: POPUP_ACCENT }}>Đóng</button>
+              <button onClick={() => setSentenceDetail(null)} className="w-full mt-5 py-3 text-white rounded-xl text-body font-label transition-all hover:opacity-90 active:scale-[0.98]" style={{ background: POPUP_ACCENT }}>Đóng</button>
             </div>
           </div>
         </div>
@@ -252,19 +252,19 @@ export default function ReviewDashboard() {
                   <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: POPUP_ACCENT_SOFT }}>
                     <UserX className="w-[18px] h-[18px]" style={{ color: POPUP_ACCENT }} />
                   </div>
-                  <span className="text-[16px] font-bold text-[#16171C]">{speakerDetail.name}</span>
+                  <span className="type-section text-[#16171C]">{speakerDetail.name}</span>
                 </div>
                 <button onClick={() => setSpeakerDetail(null)} aria-label="Đóng" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0EEE6] transition-colors flex-shrink-0">
                   <X className="w-[18px] h-[18px] text-[#6E7078]" />
                 </button>
               </div>
-              <p className="text-[11.5px] font-semibold text-[#6E7078] mb-2.5">Phân bố theo lý do · {speakerDetail.count} lần bị từ chối</p>
+              <p className="type-label text-[#6E7078] mb-2.5">Phân bố theo lý do · {speakerDetail.count} lần bị từ chối</p>
               <div className="space-y-3 mb-4">
                 {[...speakerDetail.breakdown].sort((a, b) => b.count - a.count).map((b, i) => (
                   <StatBar key={i} label={b.category} count={`${b.count} lần`} percent={Math.round((b.count / speakerDetail.count) * 100)} color={rankColor(i)} />
                 ))}
               </div>
-              <button onClick={() => setSpeakerDetail(null)} className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]" style={{ background: POPUP_ACCENT }}>Đóng</button>
+              <button onClick={() => setSpeakerDetail(null)} className="w-full mt-5 py-3 text-white rounded-xl text-body font-label transition-all hover:opacity-90 active:scale-[0.98]" style={{ background: POPUP_ACCENT }}>Đóng</button>
             </div>
           </div>
         </div>

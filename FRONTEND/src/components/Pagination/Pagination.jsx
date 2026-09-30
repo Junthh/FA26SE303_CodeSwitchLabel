@@ -35,7 +35,7 @@ export default function Pagination({ currentPage = 1, totalPages = 3, onPageChan
               backgroundColor: isActive ? accent : 'transparent',
               boxShadow: isActive ? shadow(accent) : 'none',
             }}
-            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+            className={`w-8 h-8 rounded-lg text-meta font-label transition-all ${
               isActive
                 ? 'text-white'
                 : 'border border-[#E5E2D8] text-[#6E7078] hover:bg-[#F7F5EF] hover:text-[#16171C]'

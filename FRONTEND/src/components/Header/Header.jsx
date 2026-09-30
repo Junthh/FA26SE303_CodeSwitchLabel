@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, ChevronDown, ChevronRight, User, LogOut } from 'lucide-react';
+import { Bell, ChevronDown, User, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   TEXT_HEADING, TEXT_BODY,
@@ -7,22 +7,12 @@ import {
   CHIP_DANGER_BG, CHIP_DANGER_TEXT,
 } from '../../constants/theme';
 import { HEADER_CONFIG } from '../../constants/headerConfig';
-import { SIDEBAR_CONFIG } from '../../constants/sidebarConfig';
 import { PAGE_TITLES } from '../../hooks/usePageTitle';
 import { MOCK_USERS } from '../../mocks/users';
 
 /**
- * Tìm mục sidebar "cha" của trang hiện tại dựa vào activeOn trong SIDEBAR_CONFIG
- * (vd. /record-speech thuộc mục "Câu chờ ghi âm") - để luồng chỉ khai báo 1 lần ở sidebarConfig.
- */
-function findParentItem(role, pathname) {
-  const items = (SIDEBAR_CONFIG[role]?.sections ?? []).flatMap((section) => section.items);
-  return items.find((item) => item.to === pathname || item.activeOn?.includes(pathname));
-}
-
-/**
  * Header dùng chung cho mọi role (giống Sidebar): <Header role="speaker" /> / <Header role="reviewer" />.
- * Bên trái là tiêu đề trang (hoặc đường dẫn khi đang trong một luồng), bên phải là thông báo + nút tài khoản
+ * Bên trái là tiêu đề trang, bên phải là thông báo + nút tài khoản
  * (chỉ tên, không avatar vì người dùng không có ảnh đại diện). Nền trắng, ngăn với nội dung bằng đường kẻ mảnh.
  */
 export default function Header({ role }) {
@@ -51,28 +41,17 @@ export default function Header({ role }) {
     navigate('/login', { replace: true });
   };
 
+  // Mọi trang chỉ 1 tiêu đề, cùng vị trí và độ đậm (luồng ghi âm đã có sidebar + TaskStepper chỉ bước)
   const pageTitle = PAGE_TITLES[pathname];
-  // Trang thuộc một luồng nhiều bước (mục sidebar có activeOn) -> hiện "Tên mục › Trang hiện tại"
-  const parentItem = findParentItem(role, pathname);
-  const inFlow = Boolean(parentItem?.activeOn?.length);
-  const flowParent = parentItem?.name;
 
   return (
     <header
       className="w-full h-[65px] flex justify-between items-center gap-3 px-6 lg:px-8 shrink-0 z-20"
       style={{ background: '#FFFFFF', borderBottom: `1px solid ${BORDER_LIGHT}` }}
     >
-      {/* Bên trái: tiêu đề trang / đường dẫn trong luồng ghi âm */}
-      <div className="min-w-0 flex items-center gap-1.5 text-[15px]">
-        {inFlow ? (
-          <>
-            <span className="font-semibold truncate" style={{ color: TEXT_BODY }}>{flowParent}</span>
-            <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#A3A6AE' }} />
-            <span className="font-bold truncate" style={{ color: TEXT_HEADING }}>{pageTitle}</span>
-          </>
-        ) : (
-          <span className="font-bold truncate" style={{ color: TEXT_HEADING }}>{pageTitle}</span>
-        )}
+      {/* Bên trái: tiêu đề trang */}
+      <div className="min-w-0 type-section">
+        <span className="block truncate" style={{ color: TEXT_HEADING }}>{pageTitle}</span>
       </div>
 
       {/* Bên phải: thông báo + tài khoản */}
@@ -102,8 +81,8 @@ export default function Header({ role }) {
             aria-expanded={menuOpen}
           >
             <span className="flex flex-col text-left leading-tight">
-              <span className="text-[13.5px] font-bold" style={{ color: TEXT_HEADING }}>{user.name}</span>
-              <span className="text-[11.5px] font-semibold" style={{ color: accent }}>{user.role}</span>
+              <span className="text-ui font-label" style={{ color: TEXT_HEADING }}>{user.name}</span>
+              <span className="text-meta font-regular" style={{ color: accent }}>{user.role}</span>
             </span>
             <ChevronDown
               className={`w-4 h-4 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
@@ -122,13 +101,13 @@ export default function Header({ role }) {
               }}
             >
               <div className="px-2.5 pt-2 pb-2.5 mb-1 border-b" style={{ borderColor: BORDER_LIGHT }}>
-                <p className="text-[13px] font-bold" style={{ color: TEXT_HEADING }}>{user.name}</p>
-                <p className="text-[11.5px] font-semibold mt-0.5" style={{ color: TEXT_BODY }}>{user.role}</p>
+                <p className="text-ui font-emphasis" style={{ color: TEXT_HEADING }}>{user.name}</p>
+                <p className="type-meta mt-0.5" style={{ color: TEXT_BODY }}>{user.role}</p>
               </div>
               <button
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); navigate(profilePath); }}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-semibold hover:bg-black/[0.04] transition-colors text-left"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ui font-label hover:bg-black/[0.04] transition-colors text-left"
                 style={{ color: TEXT_HEADING }}
               >
                 <User className="w-4 h-4" style={{ color: TEXT_BODY }} /> Hồ sơ cá nhân
@@ -137,7 +116,7 @@ export default function Header({ role }) {
               <button
                 role="menuitem"
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-semibold transition-colors text-left"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ui font-label transition-colors text-left"
                 style={{ color: CHIP_DANGER_TEXT }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = CHIP_DANGER_BG; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

@@ -13,7 +13,7 @@ export default function Loading({ variant = 'block', text = 'Đang tải dữ li
   return (
     <div role="status" className={`flex flex-col items-center justify-center gap-3 py-16 text-center ${className}`}>
       <Loader2 className="w-8 h-8 animate-spin" style={{ color }} />
-      {text && <p className="text-[13px] font-medium text-[#6E7078]">{text}</p>}
+      {text && <p className="text-ui font-label text-[#6E7078]">{text}</p>}
     </div>
   );
 }

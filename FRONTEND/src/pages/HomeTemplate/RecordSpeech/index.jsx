@@ -164,7 +164,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
           className="w-1.5 h-1.5 rounded-full"
           style={{ background: status === 'idle' ? AUDIO_PRIMARY : status === 'recording' ? AUDIO_PRIMARY : '#1DB954' }}
         />
-        <span className="text-[11.5px] font-bold" style={{ color: status === 'recorded' ? '#1DB954' : AUDIO_PRIMARY }}>
+        <span className="text-caption font-label" style={{ color: status === 'recorded' ? '#1DB954' : AUDIO_PRIMARY }}>
           {label}
           {status === 'idle' && ' · chưa ghi'}
           {status === 'recording' && ' · đang ghi'}
@@ -173,7 +173,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
       </div>
 
       {/* Nội dung câu */}
-      <p className="text-lg font-bold leading-snug [@media(min-height:900px)]:leading-relaxed mb-2 [@media(min-height:900px)]:mb-4" style={{ color: TEXT_HEADING }}>
+      <p className="text-headline font-label mb-2 [@media(min-height:900px)]:text-stat [@media(min-height:900px)]:mb-3 [@media(min-height:1000px)]:type-reading" style={{ color: TEXT_HEADING }}>
         {contentNode}
       </p>
 
@@ -206,7 +206,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
         </div>
 
         {/* Time row - luôn cùng 1 hàng text nhỏ, chỉ đổi nội dung */}
-        <div className="flex justify-between font-mono text-[11px] font-semibold">
+        <div className="flex justify-between type-caption tabular-nums">
           {status === 'idle' && (
             <>
               <span style={{ color: TEXT_FAINT }}>0:00</span>
@@ -235,7 +235,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
             <button
               onClick={startRecording}
               disabled={!canStart}
-              className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-ui font-label text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: AUDIO_PRIMARY, boxShadow: canStart ? `0 6px 16px ${AUDIO_SHADOW}` : 'none' }}
             >
               <Mic className="w-4 h-4" /> Ghi âm câu này
@@ -244,7 +244,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
           {status === 'recording' && (
             <button
               onClick={stopAndFinish}
-              className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all"
+              className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-ui font-label text-white transition-all"
               style={{ background: AUDIO_PRIMARY, boxShadow: `0 6px 16px ${AUDIO_SHADOW}` }}
             >
               <span className="w-3 h-3 rounded-sm bg-white" /> Dừng ghi
@@ -254,7 +254,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
             <>
               <button
                 onClick={playPause}
-                className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold text-white transition-all"
+                className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-ui font-label text-white transition-all"
                 style={{ background: AUDIO_PRIMARY }}
               >
                 {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
@@ -262,7 +262,7 @@ function SentenceCard({ id, label, contentNode, recordingCardId, setRecordingCar
               </button>
               <button
                 onClick={reRecord}
-                className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-[13px] font-bold transition-all hover:opacity-80"
+                className="flex-1 h-10 [@media(min-height:900px)]:h-11 rounded-lg flex items-center justify-center gap-2 text-ui font-label transition-all hover:opacity-80"
                 style={{ background: 'white', border: `1.5px solid ${AUDIO_PRIMARY}`, color: AUDIO_PRIMARY }}
               >
                 <RotateCcw className="w-4 h-4" /> Ghi âm lại
@@ -320,14 +320,14 @@ export default function RecordSpeech() {
         className="rounded-2xl px-4 py-3 [@media(min-height:900px)]:p-4 flex flex-wrap items-center gap-x-5 gap-y-2"
         style={{ background: '#FFFFFF', border: `1px solid ${BORDER_LIGHT}`, boxShadow: '0 1px 3px rgba(16,17,20,0.04)' }}
       >
-        <span className="text-[12.5px] font-bold flex items-center gap-1.5 shrink-0" style={{ color: TEXT_HEADING }}>
+        <span className="text-meta font-label flex items-center gap-1.5 shrink-0" style={{ color: TEXT_HEADING }}>
           <HelpCircle className="w-3.5 h-3.5" style={{ color: ACCENT }} /> Lưu ý
         </span>
-        <span className="text-[12.5px]" style={{ color: TEXT_BODY }}>Đọc tự nhiên như hội thoại</span>
+        <span className="text-meta" style={{ color: TEXT_BODY }}>Đọc tự nhiên như hội thoại</span>
         <span className="w-1 h-1 rounded-full" style={{ background: BORDER_LIGHT }} />
-        <span className="text-[12.5px]" style={{ color: TEXT_BODY }}>Cách mic 15-20cm</span>
+        <span className="text-meta" style={{ color: TEXT_BODY }}>Cách mic 15-20cm</span>
         <span className="w-1 h-1 rounded-full" style={{ background: BORDER_LIGHT }} />
-        <span className="text-[12.5px]" style={{ color: TEXT_BODY }}>Không gian yên tĩnh</span>
+        <span className="text-meta" style={{ color: TEXT_BODY }}>Không gian yên tĩnh</span>
       </div>
 
       {/* Nút Tiếp tục — sticky đáy khung cuộn, có nền mờ dần để không dính sát mép màn hình
@@ -349,7 +349,7 @@ export default function RecordSpeech() {
             })
           }
           disabled={!bothDone}
-          className="w-full py-3 [@media(min-height:900px)]:py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
+          className="w-full py-3 [@media(min-height:900px)]:py-4 rounded-2xl font-label text-body flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
           style={{
             background: bothDone ? ACCENT : SURFACE_MUTED,
             color: bothDone ? '#FFFFFF' : TEXT_FAINT,
@@ -359,7 +359,7 @@ export default function RecordSpeech() {
           <Check className="w-4 h-4" /> Tiếp tục <ArrowRight className="w-4 h-4" />
         </button>
         {!bothDone && (
-          <p className="text-[11.5px] text-center mt-1.5 [@media(min-height:900px)]:mt-2" style={{ color: TEXT_FAINT }}>
+          <p className="text-caption text-center mt-1.5 [@media(min-height:900px)]:mt-2" style={{ color: TEXT_FAINT }}>
             Ghi xong cả 2 câu để tiếp tục
           </p>
         )}

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "./constants/typography.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,7 +10,6 @@
     --color-brand-800: #3730A3;
     
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     /* ... các biến màu khác giữ nguyên ... */
 }
