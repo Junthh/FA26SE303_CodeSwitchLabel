@@ -50,7 +50,7 @@ export default function TaskStepper({ currentStep = 2 }) {
                 </span>
               </span>
               <span
-                className="text-[12px] font-bold text-center leading-tight whitespace-nowrap"
+                className="type-label text-center whitespace-nowrap"
                 style={{ color: isCurrent ? '#1F2733' : isCompleted ? '#6E7078' : '#B7B4A9' }}
               >
                 {step.label}

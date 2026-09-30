@@ -181,7 +181,7 @@ export default function ReviewText() {
           <select
             value={selectedTask.id}
             onChange={handleTaskChange}
-            className="w-full appearance-none bg-transparent text-[13.5px] font-bold pr-6 outline-none cursor-pointer truncate"
+            className="w-full appearance-none bg-transparent text-ui font-label pr-6 outline-none cursor-pointer truncate"
             style={{ color: TEXT_HEADING }}
           >
             {activeTasks.map((t) => (
@@ -195,7 +195,7 @@ export default function ReviewText() {
             style={{ color: TEXT_BODY }}
           />
           <p
-            className="text-[11px] font-medium mt-1.5"
+            className="text-caption font-label mt-1.5"
             style={{ color: TEXT_FAINT }}
           >
             Nhấn để đổi nhiệm vụ
@@ -203,9 +203,9 @@ export default function ReviewText() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between text-[11.5px] font-semibold mb-1.5">
+          <div className="flex justify-between text-caption font-label mb-1.5">
             <span style={{ color: TEXT_BODY }}>Tiến độ</span>
-            <span className="font-mono" style={{ color: TEXT_HEADING }}>
+            <span className="tabular-nums" style={{ color: TEXT_HEADING }}>
               {selectedTask.completed}/{selectedTask.goal} · {percent}%
             </span>
           </div>
@@ -225,13 +225,13 @@ export default function ReviewText() {
           style={{ borderColor: BORDER_LIGHT }}
         >
           <p
-            className="text-[10.5px] font-semibold"
+            className="text-caption font-label"
             style={{ color: TEXT_BODY }}
           >
             Hạn chót
           </p>
           <p
-            className="font-mono text-[13px] font-bold"
+            className="text-ui font-label tabular-nums"
             style={{ color: TEXT_HEADING }}
           >
             {selectedTask.deadline}
@@ -284,7 +284,7 @@ export default function ReviewText() {
                 />
               </div>
               <span
-                className="font-mono text-[12.5px] font-semibold"
+                className="type-meta"
                 style={{ color: TEXT_BODY }}
               >
                 Câu {selectedTask.completed + 1}/{selectedTask.goal}
@@ -293,18 +293,17 @@ export default function ReviewText() {
 
             <div className="text-center">
               <span
-                className="inline-block text-[10px] font-bold tracking-wide px-2 py-0.5 rounded-full mb-3"
+                className="inline-block type-caption px-2 py-0.5 rounded-full mb-3"
                 style={{ background: `${ACCENT}14`, color: ACCENT }}
               >
-                VIỆT – ANH
+                Việt – Anh
               </span>
               <h2
-                className="text-[22px] sm:text-[28px] font-bold leading-[1.6] tracking-tight max-w-[650px] mx-auto"
+                className="text-headline font-label sm:type-reading max-w-[650px] mx-auto"
                 style={{ color: TEXT_HEADING, textWrap: "pretty" }}
               >
                 <CodeSwitchText
                   transcript={sentence.cs_transcript}
-                  alignment={sentence.alignment}
                   accent={ACCENT}
                 />
               </h2>
@@ -315,13 +314,13 @@ export default function ReviewText() {
               />
 
               <span
-                className="inline-block text-[10px] font-bold tracking-wide px-2 py-0.5 rounded-full mb-3"
+                className="inline-block type-caption px-2 py-0.5 rounded-full mb-3"
                 style={{ background: SURFACE_MUTED, color: TEXT_BODY }}
               >
-                TIẾNG VIỆT
+                Tiếng Việt
               </span>
               <p
-                className="text-[22px] sm:text-[28px] font-bold leading-[1.6] tracking-tight max-w-[600px] mx-auto"
+                className="text-headline font-label sm:type-reading max-w-[600px] mx-auto"
                 style={{ color: TEXT_HEADING, textWrap: "pretty" }}
               >
                 {stripLangTags(sentence.vi_equivalent)}
@@ -334,7 +333,7 @@ export default function ReviewText() {
       {/* CTA chính */}
       <button
         onClick={handleNextStep}
-        className="w-full mt-3 py-3.5 [@media(min-height:900px)]:mt-4 [@media(min-height:900px)]:py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all"
+        className="w-full mt-3 py-3.5 [@media(min-height:900px)]:mt-4 [@media(min-height:900px)]:py-4 rounded-2xl font-label text-body flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99] transition-all"
         style={{
           background: ACCENT,
           color: "#FFFFFF",
@@ -348,7 +347,7 @@ export default function ReviewText() {
       <div className="flex items-center justify-center gap-3.5 flex-wrap mt-3 [@media(min-height:900px)]:mt-5">
         <button
           onClick={handleSkip}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold hover:opacity-85 active:scale-[0.98] transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-body font-label hover:opacity-85 active:scale-[0.98] transition-all"
           style={{
             background: SURFACE_MUTED,
             color: TEXT_BODY,
@@ -359,7 +358,7 @@ export default function ReviewText() {
         </button>
         <button
           onClick={() => setShowReportModal(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold hover:opacity-85 active:scale-[0.98] transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-body font-label hover:opacity-85 active:scale-[0.98] transition-all"
           style={{
             background: CHIP_DANGER_BG,
             color: CHIP_DANGER_TEXT,
@@ -370,7 +369,7 @@ export default function ReviewText() {
         </button>
         <button
           onClick={openEditModal}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold hover:opacity-85 active:scale-[0.98] transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-body font-label hover:opacity-85 active:scale-[0.98] transition-all"
           style={{
             background: "#FFF1DE",
             color: "#A85E12",
@@ -411,7 +410,7 @@ export default function ReviewText() {
                     />
                   </div>
                   <span
-                    className="text-[16px] font-bold"
+                    className="type-section"
                     style={{ color: TEXT_HEADING }}
                   >
                     Chỉnh sửa cặp câu
@@ -428,7 +427,7 @@ export default function ReviewText() {
               </div>
 
               <label
-                className="text-[12px] font-semibold block mb-2"
+                className="text-meta font-label block mb-2"
                 style={{ color: TEXT_BODY }}
               >
                 Câu code-switch (Việt-Anh)
@@ -437,7 +436,7 @@ export default function ReviewText() {
                 value={editCs}
                 onChange={(e) => setEditCs(e.target.value)}
                 autoFocus
-                className="w-full min-h-[80px] rounded-[14px] p-3.5 text-[14.5px] leading-relaxed outline-none resize-none transition-all"
+                className="w-full min-h-[80px] rounded-[14px] p-3.5 text-body leading-relaxed outline-none resize-none transition-all"
                 style={{
                   color: TEXT_HEADING,
                   border: `1px solid ${BORDER_LIGHT}`,
@@ -454,7 +453,7 @@ export default function ReviewText() {
               />
 
               <label
-                className="text-[12px] font-semibold block mb-2 mt-4"
+                className="text-meta font-label block mb-2 mt-4"
                 style={{ color: TEXT_BODY }}
               >
                 Câu tiếng Việt tương đương
@@ -462,7 +461,7 @@ export default function ReviewText() {
               <textarea
                 value={editVi}
                 onChange={(e) => setEditVi(e.target.value)}
-                className="w-full min-h-[80px] rounded-[14px] p-3.5 text-[14.5px] leading-relaxed outline-none resize-none transition-all"
+                className="w-full min-h-[80px] rounded-[14px] p-3.5 text-body leading-relaxed outline-none resize-none transition-all"
                 style={{
                   color: TEXT_HEADING,
                   border: `1px solid ${BORDER_LIGHT}`,
@@ -478,18 +477,18 @@ export default function ReviewText() {
                 }}
               />
 
-              <p className="text-[11px] mt-2" style={{ color: TEXT_FAINT }}>
+              <p className="type-meta mt-2" style={{ color: TEXT_FAINT }}>
                 Giữ nguyên các thẻ [vi]/[en] trong câu code-switch để hệ thống
                 nhận đúng ngôn ngữ.
               </p>
 
               <div className="flex items-center justify-between mb-2 mt-4">
                 <p
-                  className="text-[12px] font-semibold"
+                  className="text-meta font-label"
                   style={{ color: TEXT_BODY }}
                 >
                   Nghĩa của từ tiếng Anh{" "}
-                  <span className="font-normal" style={{ color: TEXT_FAINT }}>
+                  <span className="font-regular" style={{ color: TEXT_FAINT }}>
                     · tối đa {MAX_EN_WORDS} từ
                   </span>
                 </p>
@@ -499,7 +498,7 @@ export default function ReviewText() {
                     setEditPairs((prev) => [...prev, { source: "", target: "" }])
                   }
                   disabled={editPairs.length >= MAX_EN_WORDS}
-                  className="inline-flex items-center gap-1 text-[12px] font-semibold hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
+                  className="inline-flex items-center gap-1 text-meta font-label hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
                   style={{ color: ACCENT }}
                 >
                   <Plus className="w-3.5 h-3.5" /> Thêm từ
@@ -517,7 +516,7 @@ export default function ReviewText() {
                       onChange={(e) => updateEditPair(i, "source", e.target.value)}
                       placeholder="Từ tiếng Anh"
                       aria-label={`Từ tiếng Anh ${i + 1}`}
-                      className="px-3 py-2 rounded-[10px] text-[13px] font-mono font-bold outline-none min-w-0"
+                      className="px-3 py-2 rounded-[10px] text-ui font-mono font-label outline-none min-w-0"
                       style={{
                         color: ACCENT,
                         border: `1px solid ${pair.source.trim() ? BORDER_LIGHT : DANGER}`,
@@ -534,7 +533,7 @@ export default function ReviewText() {
                       onChange={(e) => updateEditPair(i, "target", e.target.value)}
                       placeholder="Nghĩa tiếng Việt"
                       aria-label={`Nghĩa tiếng Việt ${i + 1}`}
-                      className="px-3 py-2 rounded-[10px] text-[13px] outline-none min-w-0"
+                      className="px-3 py-2 rounded-[10px] text-ui outline-none min-w-0"
                       style={{
                         color: TEXT_HEADING,
                         border: `1px solid ${pair.target.trim() ? BORDER_LIGHT : DANGER}`,
@@ -560,7 +559,7 @@ export default function ReviewText() {
                 {checks.map((c) => (
                   <li
                     key={c.label}
-                    className="flex items-center gap-1.5 text-[12px] font-medium"
+                    className="flex items-center gap-1.5 text-meta font-label"
                     style={{ color: c.ok ? "#1F5C3F" : "#C63B3B" }}
                   >
                     <span
@@ -581,7 +580,7 @@ export default function ReviewText() {
               <div className="flex justify-end gap-2.5 mt-5">
                 <button
                   onClick={() => setShowEditModal(false)}
-                  className="px-5 py-2.5 rounded-full text-[13.5px] font-semibold transition-colors"
+                  className="px-5 py-2.5 rounded-full type-button transition-colors"
                   style={{
                     border: `1px solid ${BORDER_LIGHT}`,
                     color: TEXT_BODY,
@@ -593,7 +592,7 @@ export default function ReviewText() {
                 <button
                   onClick={handleSaveEdit}
                   disabled={checks.some((c) => !c.ok)}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13.5px] font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full type-button text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   style={{
                     background: ACCENT,
                     boxShadow: `0 4px 10px ${ACCENT}4D`,
@@ -637,7 +636,7 @@ export default function ReviewText() {
                     />
                   </div>
                   <span
-                    className="text-[16px] font-bold"
+                    className="type-section"
                     style={{ color: TEXT_HEADING }}
                   >
                     Báo lỗi câu này
@@ -653,7 +652,7 @@ export default function ReviewText() {
                 </button>
               </div>
               <p
-                className="text-[12.5px] mb-4 mt-1 ml-[46px]"
+                className="text-meta mb-4 mt-1 ml-[46px]"
                 style={{ color: TEXT_BODY }}
               >
                 Chọn loại lỗi bạn gặp phải
@@ -683,14 +682,14 @@ export default function ReviewText() {
                     />
                     <span>
                       <span
-                        className="block text-[13.5px] font-bold"
+                        className={`block type-ui ${reportReason === r.id ? "font-label" : ""}`}
                         style={{ color: TEXT_HEADING }}
                       >
                         {r.label}
                       </span>
                       {r.desc && (
                         <span
-                          className="block text-[11.5px] mt-0.5"
+                          className="block type-meta mt-0.5"
                           style={{ color: TEXT_BODY }}
                         >
                           {r.desc}
@@ -707,7 +706,7 @@ export default function ReviewText() {
                   onChange={(e) => setReportOther(e.target.value)}
                   placeholder="Mô tả lỗi bạn gặp phải..."
                   autoFocus
-                  className="w-full min-h-[70px] mt-2.5 rounded-[14px] p-3 text-[13.5px] outline-none resize-none transition-all"
+                  className="w-full min-h-[70px] mt-2.5 rounded-[14px] p-3 text-ui outline-none resize-none transition-all"
                   style={{
                     color: TEXT_HEADING,
                     border: `1px solid ${BORDER_LIGHT}`,
@@ -727,7 +726,7 @@ export default function ReviewText() {
               <div className="flex justify-end gap-2.5 mt-5">
                 <button
                   onClick={() => setShowReportModal(false)}
-                  className="px-5 py-2.5 rounded-full text-[13.5px] font-semibold transition-colors"
+                  className="px-5 py-2.5 rounded-full type-button transition-colors"
                   style={{
                     border: `1px solid ${BORDER_LIGHT}`,
                     color: TEXT_BODY,
@@ -739,7 +738,7 @@ export default function ReviewText() {
                 <button
                   onClick={handleSubmitReport}
                   disabled={!reportReason}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-white text-[13.5px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-white type-button disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   style={{
                     background: DANGER,
                     boxShadow: `0 4px 10px ${DANGER}4D`,

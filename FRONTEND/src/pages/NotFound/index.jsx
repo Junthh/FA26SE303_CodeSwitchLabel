@@ -61,14 +61,14 @@ export default function NotFound() {
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
         <div className="flex flex-col items-center text-center">
           <SignalLost accent={accent} />
-          <p className="mt-3 text-[13px] text-[#6E7078]">Micro không bắt được trang này</p>
+          <p className="mt-3 text-ui text-[#6E7078]">Micro không bắt được trang này</p>
         </div>
 
         <div className="text-center md:text-left">
-          <h1 className="text-[22px] font-bold text-[#2B2C31]">
+          <h1 className="text-headline font-emphasis text-[#2B2C31]">
             Oops, trang này bị <span style={{ color: accent }}>mute</span> rồi
           </h1>
-          <p className="mt-2 text-[13.5px] text-[#6E7078]">
+          <p className="mt-2 text-ui text-[#6E7078]">
             Trang bạn truy cập không tồn tại hoặc đã được chuyển sang địa chỉ khác. Thử một trong các trang sau:
           </p>
 
@@ -86,7 +86,7 @@ export default function NotFound() {
                 >
                   <Icon className="w-4 h-4" />
                 </span>
-                <span className="flex-1 text-[13px] font-bold text-[#2B2C31]">{name}</span>
+                <span className="flex-1 text-ui font-label text-[#2B2C31]">{name}</span>
                 <ChevronRight className="w-4 h-4 text-[#9A9CA3] group-hover:translate-x-0.5 transition-transform" />
               </button>
             ))}
@@ -95,7 +95,7 @@ export default function NotFound() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6E7078] hover:text-[#2B2C31] transition-colors cursor-pointer"
+            className="mt-4 inline-flex items-center gap-1.5 text-ui font-label text-[#6E7078] hover:text-[#2B2C31] transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Quay lại trang trước
           </button>

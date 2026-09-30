@@ -47,11 +47,11 @@ function RuleItem({ ok, touched, label }) {
   const bad = touched && !ok;
   return (
     <span
-      className="flex items-center gap-1 text-[11.5px] font-medium whitespace-nowrap"
+      className="flex items-center gap-1 text-caption font-label whitespace-nowrap"
       style={{ color: ok ? CHIP_SUCCESS_TEXT : bad ? CHIP_DANGER_TEXT : TEXT_FAINT }}
     >
       <span
-        className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold"
+        className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 text-caption font-label"
         style={{
           background: ok ? SUCCESS : '#FFFFFF',
           border: ok ? 'none' : `1.5px solid ${bad ? CHIP_DANGER_TEXT : '#C7C4B8'}`,
@@ -84,7 +84,7 @@ function RadioOption({ selected, label, onClick }) {
       >
         {selected && <span className="w-2 h-2 rounded-full" style={{ background: ACCENT }} />}
       </span>
-      <span className="text-[13px] font-semibold" style={{ color: selected ? TEXT_HEADING : TEXT_BODY }}>
+      <span className={`type-ui ${selected ? 'font-label' : ''}`} style={{ color: selected ? TEXT_HEADING : TEXT_BODY }}>
         {label}
       </span>
     </button>
@@ -95,7 +95,7 @@ function RadioOption({ selected, label, onClick }) {
 function RadioGroup({ label, options, value, onChange, renderLabel = (o) => o }) {
   return (
     <div role="radiogroup" aria-label={label} className="min-w-0">
-      <p className="text-[12.5px] font-bold mb-1.5" style={{ color: TEXT_HEADING }}>{label}</p>
+      <p className="type-label mb-1.5" style={{ color: TEXT_HEADING }}>{label}</p>
       <div className="flex flex-col gap-1 [@media(min-height:900px)]:gap-1.5">
         {options.map((o) => (
           <RadioOption key={o} selected={value === o} label={renderLabel(o)} onClick={() => onChange(o)} />
@@ -165,9 +165,9 @@ export default function ContributeText() {
   const sentenceField = (id, label, value, setValue, placeholder, result) => (
     <div>
       <div className="flex items-baseline justify-between mb-1.5 [@media(min-height:900px)]:mb-2">
-        <label htmlFor={id} className="text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>{label}</label>
+        <label htmlFor={id} className="type-label" style={{ color: TEXT_HEADING }}>{label}</label>
         <span
-          className="font-mono text-[11.5px] font-semibold"
+          className="type-caption tabular-nums"
           style={{ color: result.rules[0].ok ? CHIP_SUCCESS_TEXT : result.words > 20 ? WARNING : TEXT_FAINT }}
         >
           {result.words}/20 từ
@@ -179,7 +179,7 @@ export default function ContributeText() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="block w-full h-11 [@media(min-height:900px)]:h-[72px] px-3 py-2 text-[13.5px] leading-relaxed font-medium font-mono rounded-xl outline-none resize-none transition-all placeholder:font-normal"
+        className="block w-full h-11 [@media(min-height:900px)]:h-[72px] px-3 py-2 text-body leading-relaxed font-regular rounded-xl outline-none resize-none transition-all placeholder:font-regular"
         style={fieldStyle}
         onFocus={focusField}
         onBlur={blurField}
@@ -196,11 +196,10 @@ export default function ContributeText() {
     <div className="max-w-4xl mx-auto -mt-2 text-left font-sans space-y-3">
 
       <div>
-        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: TEXT_HEADING }}>Đóng góp văn bản</h1>
-        <p className="text-[13px] mt-1" style={{ color: TEXT_BODY }}>
+        <p className="type-ui" style={{ color: TEXT_BODY }}>
           Viết câu tiếng Việt có xen từ tiếng Anh, gắn thẻ{' '}
-          <span className="font-mono font-semibold" style={{ color: TEXT_HEADING }}>[vi]</span> /{' '}
-          <span className="font-mono font-semibold" style={{ color: TEXT_HEADING }}>[en]</span> trước mỗi đoạn,
+          <span className="font-mono font-label" style={{ color: TEXT_HEADING }}>[vi]</span> /{' '}
+          <span className="font-mono font-label" style={{ color: TEXT_HEADING }}>[en]</span> trước mỗi đoạn,
           kèm câu tiếng Việt tương đương và nghĩa của từng từ tiếng Anh.
         </p>
       </div>
@@ -231,7 +230,7 @@ export default function ContributeText() {
         {/* Các cặp từ đối chiếu Anh-Việt - luôn giữ chỗ đủ MAX_PAIRS dòng; dòng vượt quá wordCount bị ẩn nhưng vẫn chiếm chỗ */}
         <div className="px-4 sm:px-5 py-2 [@media(min-height:900px)]:py-3.5">
           <div className="flex items-baseline justify-between mb-1.5">
-            <p className="text-[12.5px] font-bold" style={{ color: TEXT_HEADING }}>
+            <p className="type-label" style={{ color: TEXT_HEADING }}>
               Nghĩa tiếng Việt của {wordCount === 1 ? 'từ' : 'các từ'} tiếng Anh
             </p>
             <RuleItem ok={pairsOk} touched={pairsTouched} label={`Điền đủ ${wordCount} cặp`} />
@@ -248,7 +247,7 @@ export default function ContributeText() {
                     disabled={!active}
                     onChange={(e) => updatePair(i, 'source', e.target.value)}
                     placeholder="từ tiếng Anh"
-                    className="min-w-0 flex-1 px-3 py-1.5 text-[13.5px] font-mono font-semibold rounded-lg outline-none transition-all"
+                    className="min-w-0 flex-1 px-3 py-1.5 text-ui font-mono font-label rounded-lg outline-none transition-all"
                     style={{ ...fieldStyle, color: ACCENT }}
                     onFocus={focusField}
                     onBlur={blurField}
@@ -261,7 +260,7 @@ export default function ContributeText() {
                     disabled={!active}
                     onChange={(e) => updatePair(i, 'target', e.target.value)}
                     placeholder="nghĩa tiếng Việt"
-                    className="min-w-0 flex-1 px-3 py-1.5 text-[13.5px] font-medium rounded-lg outline-none transition-all"
+                    className="min-w-0 flex-1 px-3 py-1.5 text-ui font-label rounded-lg outline-none transition-all"
                     style={fieldStyle}
                     onFocus={focusField}
                     onBlur={blurField}
@@ -273,14 +272,14 @@ export default function ContributeText() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-2 [@media(min-height:900px)]:py-3 border-t" style={{ background: SURFACE_PAGE, borderColor: BORDER_LIGHT }}>
-          <span className="text-[12px] font-semibold" aria-live="polite" style={{ color: allValid ? CHIP_SUCCESS_TEXT : TEXT_BODY }}>
+          <span className="type-label" aria-live="polite" style={{ color: allValid ? CHIP_SUCCESS_TEXT : TEXT_BODY }}>
             Đã đạt {passedCount}/{totalRules} tiêu chuẩn
           </span>
           <div className="flex items-center gap-2.5 shrink-0">
             {hasContent && (
               <button
                 onClick={resetForm}
-                className="px-3.5 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-1.5 transition-all"
+                className="px-3.5 py-2.5 rounded-xl text-ui font-label flex items-center gap-1.5 transition-all"
                 style={{ background: '#FFFFFF', border: `1px solid ${BORDER_LIGHT}`, color: TEXT_HEADING }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = CHIP_DANGER_BORDER; e.currentTarget.style.background = CHIP_DANGER_BG; e.currentTarget.style.color = CHIP_DANGER_TEXT; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = BORDER_LIGHT; e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = TEXT_HEADING; }}
@@ -291,7 +290,7 @@ export default function ContributeText() {
             <button
               onClick={handleSubmit}
               disabled={!allValid}
-              className="flex-1 sm:flex-none px-4 py-2.5 text-white font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all"
+              className="flex-1 sm:flex-none px-4 py-2.5 text-white font-label text-ui rounded-xl flex items-center justify-center gap-2 transition-all"
               style={{
                 background: allValid ? ACCENT : '#DCD9CE',
                 cursor: allValid ? 'pointer' : 'not-allowed',

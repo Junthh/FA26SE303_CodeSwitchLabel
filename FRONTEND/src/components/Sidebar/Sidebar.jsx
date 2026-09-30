@@ -43,7 +43,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
 
   const { background, idleText, accent, accentIcon, accentSoftBg, items, sections, promo } = config;
 
-  const itemBase = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all';
+  const itemBase = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-ui font-label transition-all';
   const idleCls = 'text-[var(--sidebar-idle)] hover:bg-white/[0.06] hover:text-white';
   const activeStyle = { background: accentSoftBg, borderColor: accent };
 
@@ -74,7 +74,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
           <nav className="text-left">
             {sections.map((section) => (
               <div key={section.title}>
-                <p className="px-3 mt-4 mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--sidebar-idle)] opacity-70">
+                <p className="px-3 mt-4 mb-1.5 type-caption text-[var(--sidebar-idle)] opacity-70">
                   {section.title}
                 </p>
                 <div className="space-y-0.5">
@@ -143,7 +143,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
                             to={child.to}
                             onClick={onClose}
                             className={({ isActive: a }) =>
-                              `flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-semibold transition-all ${
+                              `flex items-center gap-2.5 px-3 py-2 rounded-lg text-ui font-label transition-all ${
                                 a ? 'bg-white/[0.06] text-white' : idleCls
                               }`
                             }
@@ -190,9 +190,9 @@ export default function Sidebar({ role, isOpen, onClose }) {
           <div className="mt-auto mb-2 bg-white/[0.04] p-4 rounded-xl border border-white/10 space-y-2">
             <div className="flex items-center gap-2">
               <promo.icon className="w-3.5 h-3.5" style={{ color: accent }} />
-              <span className="text-xs font-bold text-white">{promo.title}</span>
+              <span className="type-label text-white">{promo.title}</span>
             </div>
-            <p className="text-xs leading-relaxed text-[var(--sidebar-idle)]">{promo.description}</p>
+            <p className="type-meta text-[var(--sidebar-idle)]">{promo.description}</p>
           </div>
         )}
       </div>
@@ -200,7 +200,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
       {/* Footer dùng chung cho mọi role */}
       <div className="space-y-1 pt-4 border-t border-white/10 text-left shrink-0">
         <button
-          className={`flex items-center gap-3 px-3 py-2.5 w-full text-[13px] font-semibold rounded-lg transition-colors cursor-pointer ${idleCls}`}
+          className={`flex items-center gap-3 px-3 py-2.5 w-full text-ui font-label rounded-lg transition-colors cursor-pointer ${idleCls}`}
         >
           <HelpCircle className="w-4 h-4 shrink-0" /> Trung tâm hỗ trợ
         </button>

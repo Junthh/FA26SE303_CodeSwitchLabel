@@ -51,16 +51,16 @@ export default function SpeakerDashboard() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: HOME_RANK_FIRST }} />
-                <span className="text-[12.5px] font-semibold" style={{ color: HOME_HERO_TEXT_MUTED }}>
+                <span className="text-meta font-label" style={{ color: HOME_HERO_TEXT_MUTED }}>
                   Đang mở · Vòng ghi âm tuần này
                 </span>
               </div>
 
               <div>
-                <h2 className="text-xl lg:text-[22px] font-extrabold tracking-tight leading-snug" style={{ color: HOME_HERO_TEXT }}>
+                <h2 className="type-page-title" style={{ color: HOME_HERO_TEXT }}>
                   Ai ghi nhanh nhất tuần này?
                 </h2>
-                <p className="text-[13px] leading-relaxed mt-1 max-w-sm text-balance" style={{ color: HOME_HERO_TEXT_MUTED }}>
+                <p className="text-ui leading-relaxed mt-1 max-w-sm text-balance" style={{ color: HOME_HERO_TEXT_MUTED }}>
                   Cập nhật ngay khi có bản ghi mới. Hoàn thành nhiệm vụ để giữ hạng.
                 </p>
               </div>
@@ -70,7 +70,7 @@ export default function SpeakerDashboard() {
                   <button
                     key={key}
                     onClick={() => setSelectedLb(key)}
-                    className={`px-3.5 py-2 rounded-lg text-[12.5px] font-bold transition-colors ${
+                    className={`px-3.5 py-2 rounded-lg text-ui font-label transition-colors ${
                       selectedLb === key
                         ? ''
                         : 'border hover:bg-white/[0.14]'
@@ -95,8 +95,8 @@ export default function SpeakerDashboard() {
                 ['Mục tiêu', `${currentLeaderboard.target} câu`],
               ].map(([label, value]) => (
                 <div key={label}>
-                  <p className="text-[11px] font-semibold" style={{ color: HOME_HERO_TEXT_MUTED, opacity: 0.8 }}>{label}</p>
-                  <p className="font-mono text-[14px] font-semibold mt-0.5" style={{ color: HOME_HERO_TEXT }}>{value}</p>
+                  <p className="type-label" style={{ color: HOME_HERO_TEXT_MUTED, opacity: 0.8 }}>{label}</p>
+                  <p className="text-headline font-emphasis tabular-nums mt-0.5" style={{ color: HOME_HERO_TEXT }}>{value}</p>
                 </div>
               ))}
             </div>
@@ -118,25 +118,22 @@ export default function SpeakerDashboard() {
                       : { background: HOME_HERO_ROW, border: '1px solid transparent' }
                   }
                 >
-                  {medal ? (
-                    <span
-                      className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-[11px] font-bold"
-                      style={{ background: medal.bg, color: medal.text, boxShadow: `inset 0 0 0 1.5px ${HOME_MEDAL_RING}` }}
-                    >
-                      {user.rank}
-                    </span>
-                  ) : (
-                    <span className="font-mono w-6 text-center text-[13px] font-semibold shrink-0" style={{ color: HOME_HERO_TEXT_MUTED }}>
-                      {String(user.rank).padStart(2, '0')}
-                    </span>
-                  )}
+                  {/* Cả 5 hạng cùng 1 kiểu số trong vòng tròn: top 3 màu huy chương, còn lại màu trung tính */}
+                  <span
+                    className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-meta font-emphasis tabular-nums"
+                    style={medal
+                      ? { background: medal.bg, color: medal.text, boxShadow: `inset 0 0 0 1.5px ${HOME_MEDAL_RING}` }
+                      : { background: 'rgba(255,255,255,0.08)', color: HOME_HERO_TEXT_MUTED }}
+                  >
+                    {user.rank}
+                  </span>
                   {/* Tên + thanh tiến độ cùng 1 hàng để hàng mỏng hơn */}
                   <div className="flex-1 min-w-0 flex items-center gap-3">
-                    <p className={`w-48 shrink-0 truncate text-[13.5px] font-semibold`} style={{ color: HOME_HERO_TEXT }}>
+                    <p className={`w-52 shrink-0 truncate text-body font-label`} style={{ color: HOME_HERO_TEXT }}>
                       {user.name}
                       {isTop1 && (
                         <span
-                          className="text-[10px] px-1.5 py-0.5 rounded-full ml-2 font-bold align-middle"
+                          className="text-caption px-1.5 py-0.5 rounded-full ml-2 font-label align-middle"
                           style={{ background: HOME_RANK_FIRST, color: HOME_RANK_FIRST_TEXT }}
                         >
                           Dẫn đầu
@@ -147,8 +144,8 @@ export default function SpeakerDashboard() {
                       <div className="h-full rounded-full" style={{ width: `${percent}%`, background: isTop1 ? HOME_RANK_FIRST : HOME_HERO_BAR }} />
                     </div>
                   </div>
-                  <span className={`font-mono text-[13px] shrink-0 ${isTop1 ? 'font-bold' : ''}`} style={{ color: isTop1 ? HOME_RANK_FIRST : HOME_HERO_TEXT_MUTED }}>
-                    {user.completed}<span className="text-[10px] opacity-60">/{currentLeaderboard.target}</span>
+                  <span className={`text-body tabular-nums shrink-0 ${isTop1 ? 'font-emphasis' : 'font-label'}`} style={{ color: isTop1 ? HOME_RANK_FIRST : HOME_HERO_TEXT_MUTED }}>
+                    {user.completed}<span className="text-caption opacity-60">/{currentLeaderboard.target}</span>
                   </span>
                 </div>
               );
@@ -160,7 +157,7 @@ export default function SpeakerDashboard() {
       {/* NHIỆM VỤ CỦA BẠN */}
       <div className="flex-1 flex flex-col gap-2.5">
         <div className="flex justify-between items-end px-1">
-          <h3 className="text-base font-extrabold flex items-center gap-2" style={{ color: TEXT_HEADING }}>
+          <h3 className="type-section flex items-center gap-2" style={{ color: TEXT_HEADING }}>
             <Target className="w-4 h-4" style={{ color: ACCENT }} /> Nhiệm vụ của bạn
           </h3>
         </div>
@@ -182,8 +179,8 @@ export default function SpeakerDashboard() {
                 {/* Tiêu đề + mô tả */}
                 <div className="w-full lg:w-4/12 min-w-0">
                   {/* Mô tả: ẩn ở màn thấp (thẻ còn 1 dòng, xem khi rê chuột), hiện lại ở màn cao */}
-                  <h4 className="text-[13.5px] font-bold truncate" style={{ color: TEXT_HEADING }} title={task.description}>{task.title}</h4>
-                  <p className="hidden [@media(min-height:850px)]:block text-xs truncate mt-0.5" style={{ color: TEXT_BODY }}>{task.description}</p>
+                  <h4 className="type-card-title truncate" style={{ color: TEXT_HEADING }} title={task.description}>{task.title}</h4>
+                  <p className="hidden [@media(min-height:850px)]:block type-meta truncate mt-0.5" style={{ color: TEXT_BODY }}>{task.description}</p>
                 </div>
 
                 {/* Thanh tiến độ */}
@@ -194,7 +191,7 @@ export default function SpeakerDashboard() {
                       style={{ width: `${percent}%`, background: barColor }}
                     />
                   </div>
-                  <span className="font-mono text-xs whitespace-nowrap" style={{ color: TEXT_BODY }}>
+                  <span className="text-ui font-label tabular-nums whitespace-nowrap" style={{ color: TEXT_BODY }}>
                     {task.completed}/{task.target}
                   </span>
                 </div>
@@ -203,39 +200,39 @@ export default function SpeakerDashboard() {
                 <div className="w-full lg:w-5/12 flex items-center justify-between gap-3">
                   {isDone ? (
                     <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-meta font-label whitespace-nowrap"
                       style={{ color: CHIP_SUCCESS_TEXT, background: CHIP_SUCCESS_BG, border: `1px solid ${CHIP_SUCCESS_BORDER}` }}
                     >
                       <Check className="w-3.5 h-3.5" style={{ color: HOME_PROGRESS_GOOD }} /> Hoàn thành
                     </span>
                   ) : percent >= 50 ? (
                     <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-meta font-label whitespace-nowrap"
                       style={{ color: CHIP_SUCCESS_TEXT, background: CHIP_SUCCESS_BG, border: `1px solid ${CHIP_SUCCESS_BORDER}` }}
                     >
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: HOME_PROGRESS_GOOD }} /> Đang thực hiện
                     </span>
                   ) : (
                     <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-meta font-label whitespace-nowrap"
                       style={{ color: CHIP_WARNING_TEXT, background: CHIP_WARNING_BG, border: `1px solid ${CHIP_WARNING_BORDER}` }}
                     >
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: HOME_PROGRESS_LOW }} /> Đang thực hiện
                     </span>
                   )}
-                  <p className="hidden sm:block text-xs font-semibold whitespace-nowrap" style={{ color: TEXT_BODY }}>
-                    Hạn <span className="font-mono" style={{ color: TEXT_HEADING }}>{task.deadline.slice(0, 5)}</span>
+                  <p className="hidden sm:block text-meta font-label whitespace-nowrap" style={{ color: TEXT_BODY }}>
+                    Hạn <span className="tabular-nums" style={{ color: TEXT_HEADING }}>{task.deadline.slice(0, 5)}</span>
                   </p>
                   {isDone ? (
                     <button
-                      className="px-4 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-4 py-2 rounded-lg text-ui font-label transition-colors whitespace-nowrap cursor-pointer"
                       style={{ color: ACCENT, background: `${ACCENT}0D`, border: `1px solid ${ACCENT}33` }}
                     >
                       Xem lại
                     </button>
                   ) : (
                     <button
-                      className="px-4 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-4 py-2 rounded-lg text-ui font-label transition-colors whitespace-nowrap cursor-pointer"
                       style={{ background: ACCENT, color: TEXT_ON_DARK_PRIMARY }}
                     >
                       Ghi âm tiếp

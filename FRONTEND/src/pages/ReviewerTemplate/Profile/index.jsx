@@ -43,7 +43,7 @@ const profileSchema = Yup.object({
 });
 
 const FIELD_BASE =
-  'w-full px-3.5 py-2.5 rounded-xl border-[1.5px] bg-white text-[#2B2C31] text-[13px] font-medium transition-all outline-none placeholder:text-[#B7B4A9] placeholder:font-normal';
+  'w-full h-11 px-3.5 py-2.5 rounded-xl border-[1.5px] bg-white text-[#2B2C31] type-body transition-all outline-none placeholder:text-[#B7B4A9]';
 
 export default function ReviewerProfile() {
   const formik = useFormik({
@@ -74,28 +74,27 @@ export default function ReviewerProfile() {
         : 'border-[#E5E2D8] hover:border-[#D8D5C9] focus:border-[#0052CC] focus:ring-4 focus:ring-[#0052CC]/10'
     }`;
   const errorText = (name) =>
-    hasError(name) && <p className="text-[11.5px] font-medium text-[#C63B3B] mt-1">{formik.errors[name]}</p>;
+    hasError(name) && <p className="type-label text-[#C63B3B] mt-1">{formik.errors[name]}</p>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-4 text-left font-sans">
       <div>
-        <h1 className="text-[22px] font-bold text-[#2B2C31] tracking-tight">Thông tin cá nhân</h1>
-        <p className="text-[13px] text-[#6E7078] mt-1">Cập nhật thông tin cá nhân của bạn.</p>
+        <p className="type-ui text-[#6E7078]">Cập nhật thông tin cá nhân của bạn.</p>
       </div>
 
       <div className="bg-white p-6 rounded-[24px] border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] space-y-5">
-        <h3 className="text-[15px] font-bold text-[#2B2C31] border-b border-[#E5E2D8] pb-3">Chi tiết hồ sơ</h3>
+        <h3 className="type-card-title text-[#2B2C31] border-b border-[#E5E2D8] pb-3">Chi tiết hồ sơ</h3>
 
         <form className="space-y-3.5" onSubmit={formik.handleSubmit} noValidate>
           <div>
-            <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Họ và tên *</label>
+            <label className="block type-label text-[#2B2C31] mb-1.5">Họ và tên *</label>
             <input type="text" {...formik.getFieldProps('fullName')} className={fieldClass('fullName')} />
             {errorText('fullName')}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Giới tính *</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Giới tính *</label>
               <select {...formik.getFieldProps('gender')} className={fieldClass('gender')}>
                 {GENDERS.map((g) => (
                   <option key={g} value={g}>{g}</option>
@@ -104,7 +103,7 @@ export default function ReviewerProfile() {
               {errorText('gender')}
             </div>
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Ngày sinh *</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Ngày sinh *</label>
               <input type="date" {...formik.getFieldProps('birthDate')} className={fieldClass('birthDate')} />
               {errorText('birthDate')}
             </div>
@@ -112,12 +111,12 @@ export default function ReviewerProfile() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Tỉnh / Thành phố *</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Tỉnh / Thành phố *</label>
               <input type="text" placeholder="Ví dụ: Hà Nội" {...formik.getFieldProps('hometown')} className={fieldClass('hometown')} />
               {errorText('hometown')}
             </div>
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Trình độ tiếng Anh (IELTS)</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Trình độ tiếng Anh (IELTS)</label>
               <select {...formik.getFieldProps('englishLevel')} className={fieldClass('englishLevel')}>
                 {ENGLISH_LEVELS.map((lv) => (
                   <option key={lv} value={lv}>{lv}</option>
@@ -130,7 +129,7 @@ export default function ReviewerProfile() {
           {/* Nghề nghiệp + Chuyên ngành cùng hàng */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Nghề nghiệp *</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Nghề nghiệp *</label>
               <input
                 type="text"
                 placeholder="Ví dụ: Sinh viên, nhân viên văn phòng, giáo viên..."
@@ -140,7 +139,7 @@ export default function ReviewerProfile() {
               {errorText('occupation')}
             </div>
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Chuyên ngành</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Chuyên ngành</label>
               <input
                 type="text"
                 placeholder="Ví dụ: Công nghệ thông tin, Ngôn ngữ Anh..."
@@ -153,12 +152,12 @@ export default function ReviewerProfile() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Email *</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Email *</label>
               <input type="email" {...formik.getFieldProps('email')} className={fieldClass('email')} />
               {errorText('email')}
             </div>
             <div>
-              <label className="block text-[12.5px] font-bold text-[#2B2C31] mb-1.5">Mật khẩu</label>
+              <label className="block type-label text-[#2B2C31] mb-1.5">Mật khẩu</label>
               <input
                 type="password"
                 placeholder="••••••••••••"
@@ -174,7 +173,7 @@ export default function ReviewerProfile() {
             <button
               type="submit"
               disabled={formik.isSubmitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-bold text-[13px] hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-60"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white type-button hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-60"
               style={{ background: ACCENT, boxShadow: `0 10px 24px ${ACCENT}40` }}
             >
               <Save className="w-4 h-4" /> Lưu thông tin

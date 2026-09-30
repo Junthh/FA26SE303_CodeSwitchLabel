@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Search, Filter, ArrowRight, UserCheck, Headphones, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../../../components/Pagination/Pagination';
-import useFitPageSize from '../../../hooks/useFitPageSize';
 import { REVIEWER_ACCENT as ACCENT } from '../../../constants/theme';
 import { ASSIGNED_TASKS } from '../../../mocks/reviewer/tasks';
 
@@ -36,8 +35,8 @@ export default function ReviewTasks() {
     return [...list].sort((a, b) => STATUS_ORDER[a.statusType] - STATUS_ORDER[b.statusType]);
   }, [assignedTasks, searchTerm, filterAssignee, filterStatus]);
 
-  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
-  const [listRef, pageSize] = useFitPageSize(10, [filteredTasks.length > 0], 'tbody > tr');
+  // Cố định 10 nhiệm vụ mỗi trang; trang đầy thì các dòng giãn đều hết khung (màn thấp thì bảng cuộn bên trong)
+  const pageSize = 10;
   const totalPages = Math.ceil(filteredTasks.length / pageSize) || 1;
   const paginatedTasks = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -63,7 +62,7 @@ export default function ReviewTasks() {
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             placeholder="Tìm theo tên nhiệm vụ..."
-            className="w-full pl-9 pr-4 py-2 text-xs border border-[#E5E2D8] rounded-xl outline-none focus:border-[#818CF8] focus:ring-4 focus:ring-[#818CF8]/10 transition-all"
+            className="w-full pl-9 pr-4 py-2 text-meta border border-[#E5E2D8] rounded-xl outline-none focus:border-[#818CF8] focus:ring-4 focus:ring-[#818CF8]/10 transition-all"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
@@ -72,7 +71,7 @@ export default function ReviewTasks() {
             <select
               value={filterAssignee}
               onChange={(e) => { setFilterAssignee(e.target.value); setCurrentPage(1); }}
-              className="text-xs border border-[#E5E2D8] rounded-xl px-3 py-2 bg-white text-[#16171C] font-medium outline-none focus:border-[#818CF8]"
+              className="text-meta border border-[#E5E2D8] rounded-xl px-3 py-2 bg-white text-[#16171C] font-label outline-none focus:border-[#818CF8]"
             >
               <option value="all">Tất cả người giao</option>
               <option value="Nguyễn Hoàng">Task Manager - Nguyễn Hoàng</option>
@@ -82,7 +81,7 @@ export default function ReviewTasks() {
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-            className="text-xs border border-[#E5E2D8] rounded-xl px-3 py-2 bg-white text-[#16171C] font-medium outline-none focus:border-[#818CF8]"
+            className="text-meta border border-[#E5E2D8] rounded-xl px-3 py-2 bg-white text-[#16171C] font-label outline-none focus:border-[#818CF8]"
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="in-progress">Đang thực hiện</option>
@@ -94,20 +93,20 @@ export default function ReviewTasks() {
 
       {/* Bảng */}
       <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-[#E5E2D8] shadow-[0_1px_3px_rgba(16,17,20,0.04)] overflow-hidden">
-        <div ref={listRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
-          <table className="w-full border-collapse">
+        <div className="flex-1 min-h-0 overflow-auto">
+          <table className={`w-full border-collapse ${paginatedTasks.length === pageSize ? 'h-full' : ''}`}>
             <thead>
-              <tr className="bg-[#F7F5EF] text-[11px] uppercase tracking-wider text-[#9A9CA3] border-b border-[#E5E2D8] font-bold">
-                <th className="py-3 px-4 text-center w-[6%]">STT</th>
-                <th className="py-3 px-6 text-left w-[28%]">Nhiệm vụ</th>
-                <th className="py-3 px-4 text-left w-[18%]">Người giao task</th>
-                <th className="py-3 px-4 text-left w-[18%]">Mục tiêu (Target)</th>
-                <th className="py-3 px-4 text-left w-[12%]">Hạn chót</th>
-                <th className="py-3 px-4 text-left w-[12%]">Trạng thái</th>
-                <th className="py-3 px-6 text-left w-[16%]">Hành động</th>
+              <tr className="bg-[#F7F5EF] type-label text-[#9A9CA3] border-b border-[#E5E2D8] whitespace-nowrap">
+                <th className="py-2.5 px-3 text-center w-12">STT</th>
+                <th className="py-2.5 px-3 text-left w-[26%]">Nhiệm vụ</th>
+                <th className="py-2.5 px-3 text-left">Người giao</th>
+                <th className="py-2.5 px-3 text-left min-w-[140px]">Mục tiêu (Target)</th>
+                <th className="py-2.5 px-3 text-left">Hạn chót</th>
+                <th className="py-2.5 px-3 text-left">Trạng thái</th>
+                <th className="py-2.5 px-3 text-left">Hành động</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0EEE6] text-xs font-medium">
+            <tbody className="divide-y divide-[#F0EEE6] type-ui">
               {paginatedTasks.length > 0 ? paginatedTasks.map((task, idx) => {
                 const percent = Math.round((task.reviewed / task.target) * 100);
                 const st = statusStyle(task.statusType);
@@ -115,45 +114,45 @@ export default function ReviewTasks() {
                 const TypeIcon = type.icon;
                 return (
                   <tr key={task.id} className="hover:bg-[#F7F5EF]/70 transition-colors">
-                    <td className="py-4 px-4 text-center whitespace-nowrap">
-                      <span className="text-[#9A9CA3] font-medium font-mono text-xs">{(currentPage - 1) * pageSize + idx + 1}</span>
+                    <td className="py-2 px-3 text-center whitespace-nowrap">
+                      <span className="text-[#9A9CA3] type-meta">{(currentPage - 1) * pageSize + idx + 1}</span>
                     </td>
-                    <td className="py-4 px-6 text-left whitespace-nowrap">
-                      <p className="font-bold text-[#16171C] truncate max-w-[180px] md:max-w-[220px]" title={task.title}>{task.title}</p>
-                      <span className="mt-1 inline-flex items-center gap-1 text-[10.5px] font-bold text-[#6E7078]">
+                    <td className="py-2 px-3 text-left">
+                      <p className="text-ui font-emphasis text-[#16171C] break-words">{task.title}</p>
+                      <span className="mt-0.5 flex items-center gap-1 type-meta text-[#6E7078]">
                         <TypeIcon className="w-3 h-3" /> {type.label}
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-left whitespace-nowrap">
-                      <span className="flex items-center gap-1.5 text-[#16171C] font-semibold">
-                        <UserCheck className="w-3.5 h-3.5 text-[#9A9CA3]" /> {task.assignedBy}
+                    <td className="py-2 px-3 text-left whitespace-nowrap">
+                      <span className="flex items-center gap-1.5 min-w-0 text-[#6E7078]">
+                        <UserCheck className="w-3.5 h-3.5 text-[#9A9CA3] shrink-0" /> <span className="truncate" title={task.assignedBy}>{task.assignedBy.replace(/^Task Manager - /, '')}</span>
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-left">
-                      <div className="flex flex-col gap-1 max-w-[140px]">
-                        <div className="flex justify-between text-[11px] text-[#6E7078] font-medium">
+                    <td className="py-2 px-3 text-left">
+                      <div className="flex flex-col gap-1 max-w-[180px]">
+                        <div className="flex justify-between gap-2 whitespace-nowrap type-meta text-[#6E7078]">
                           <span>{task.reviewed}/{task.target} {type.unit}</span>
-                          <span className="font-bold text-[#16171C] font-mono">{percent}%</span>
+                          <span className="font-emphasis text-[#16171C] tabular-nums">{percent}%</span>
                         </div>
                         <div className="w-full bg-[#F0EEE6] h-1.5 rounded-full overflow-hidden">
                           <div style={{ width: `${percent}%`, background: task.statusType === 'completed' ? '#3FA66B' : ACCENT }} className="h-full rounded-full transition-all duration-300" />
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-left whitespace-nowrap">
-                      <span className="text-[11px] text-[#6E7078] font-mono bg-[#F7F5EF] px-2 py-1 rounded border border-[#E5E2D8] inline-block">{task.deadline}</span>
+                    <td className="py-2 px-3 text-left whitespace-nowrap">
+                      <span className="type-meta text-[#6E7078]">{task.deadline}</span>
                     </td>
-                    <td className="py-4 px-4 text-left whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${st.chip}`} style={st.chipBg ? { background: st.chipBg } : {}}>
+                    <td className="py-2 px-3 text-left whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 h-6 rounded-full type-caption ${st.chip}`} style={st.chipBg ? { background: st.chipBg } : {}}>
                         <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
                         {task.status}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-left whitespace-nowrap">
+                    <td className="py-2 px-3 text-left whitespace-nowrap">
                       <button
                         onClick={() => navigate(type.path(task))}
-                        className="px-3 py-1.5 text-white rounded-xl text-[11px] font-bold flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer"
-                        style={{ background: ACCENT }}
+                        className="h-7 px-3 rounded-lg border bg-white type-label flex items-center gap-1 text-(--accent) border-(--accent) hover:bg-(--accent) hover:text-white transition-colors cursor-pointer"
+                        style={{ '--accent': ACCENT }}
                       >
                         Vào kiểm duyệt <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -162,7 +161,7 @@ export default function ReviewTasks() {
                 );
               }) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[#9A9CA3] text-xs">Không tìm thấy nhiệm vụ nào phù hợp với bộ lọc.</td>
+                  <td colSpan={7} className="py-8 text-center text-[#9A9CA3] text-meta">Không tìm thấy nhiệm vụ nào phù hợp với bộ lọc.</td>
                 </tr>
               )}
             </tbody>

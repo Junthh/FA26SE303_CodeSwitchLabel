@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import Pagination from "../../../../components/Pagination/Pagination";
-import useFitPageSize from "../../../../hooks/useFitPageSize";
 import { CheckCircle2, XCircle, Clock, AlertCircle, X, BarChart3, Search, ArrowRight } from "lucide-react";
 import { SPEAKER_ACCENT as ACCENT, SUCCESS, DANGER, WARNING } from "../../../../constants/theme";
 import { CONTRIBUTION_HISTORY as TEXT_HISTORY } from "../../../../mocks/speaker/history";
@@ -10,19 +9,19 @@ function SentenceContent({ item }) {
     <>
       {[{ label: "VI-EN", text: item.cs_transcript, color: ACCENT }, { label: "VI", text: item.vi_equivalent, color: "#8B8D95" }].map(({ label, text, color }) => (
         <div key={label} className="bg-[#F7F5EF] p-3.5 rounded-xl border border-[#E5E2D8] mb-2.5 flex items-center gap-2.5">
-          <span className="text-[9px] font-bold w-9 h-[18px] shrink-0 rounded-md inline-flex items-center justify-center text-white" style={{ background: color }}>{label}</span>
-          <p className="text-sm font-semibold text-[#16171C] leading-relaxed break-words min-w-0">{text}</p>
+          <span className="text-tag font-emphasis w-9 h-4 shrink-0 rounded inline-flex items-center justify-center text-white" style={{ background: color }}>{label}</span>
+          <p className="type-body text-[#16171C] break-words min-w-0">{text}</p>
         </div>
       ))}
       {item.alignment.length > 0 && (
         <div className="mt-4 mb-4">
-          <p className="text-[10px] font-bold text-[#9A9CA3] uppercase tracking-wider mb-2">Nghĩa từ tiếng Anh</p>
+          <p className="type-label text-[#9A9CA3] mb-2">Nghĩa từ tiếng Anh</p>
           <div className="flex flex-wrap gap-2">
             {item.alignment.map((a, i) => (
               <div key={i} className="flex items-center gap-1.5 bg-[#F0EEE6] border border-[#E5E2D8] rounded-lg px-2.5 py-1.5">
-                <span className="text-[11.5px] font-bold font-mono" style={{ color: ACCENT }}>{a.source}</span>
+                <span className="type-label font-mono" style={{ color: ACCENT }}>{a.source}</span>
                 <ArrowRight className="w-3 h-3 text-[#B7B4A9] shrink-0" />
-                <span className="text-[11.5px] font-semibold text-[#16171C]">{a.target}</span>
+                <span className="type-meta text-[#16171C]">{a.target}</span>
               </div>
             ))}
           </div>
@@ -57,10 +56,10 @@ function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
         <Icon className="w-4 h-4" style={{ color: accent }} />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold text-[#6E7078]">{label}</p>
-        <p className="text-[17px] font-bold text-[#16171C] font-mono leading-tight">
+        <p className="type-label text-[#6E7078]">{label}</p>
+        <p className="type-stat text-[#16171C]">
           {value}
-          {pct !== undefined && <span className="text-[11px] font-semibold ml-1" style={{ color: accent }}>{pct}%</span>}
+          {pct !== undefined && <span className="type-label ml-1" style={{ color: accent }}>{pct}%</span>}
         </p>
       </div>
     </div>
@@ -79,10 +78,10 @@ function ResultButton({ status, votedCount, onClick, ariaLabel }) {
     <button
       onClick={onClick}
       aria-label={ariaLabel}
-      className="w-[136px] inline-flex items-center justify-center gap-1.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
+      className="w-[128px] h-6 inline-flex items-center justify-center gap-1 rounded-full border type-caption transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
       style={{ background: s.bg, borderColor: s.border, color: s.text }}
     >
-      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <Icon className="w-3 h-3 shrink-0" />
       <span>{s.label} · {votedCount}/3</span>
     </button>
   );
@@ -124,8 +123,8 @@ export default function ContributionHistory() {
       )
     );
   }, [withStatus, statusFilter, categoryFilter, searchTerm]);
-  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
-  const [listRef, itemsPerPage] = useFitPageSize(10, [filteredData.length > 0], "tbody > tr");
+  // Cố định 10 câu mỗi trang; trang đầy thì 10 dòng giãn đều hết chiều cao khung (màn thấp thì bảng cuộn bên trong)
+  const itemsPerPage = 10;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const pageItems = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -154,7 +153,7 @@ export default function ContributionHistory() {
                   setCurrentPage(1);
                 }}
                 placeholder="Tìm phân loại, nội dung..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5E2D8] text-[13px] leading-4 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5E2D8] text-ui leading-4 focus:outline-none focus:border-blue-500"
               />
             </div>
             <select
@@ -164,7 +163,7 @@ export default function ContributionHistory() {
                 setCategoryFilter(event.target.value);
                 setCurrentPage(1);
               }}
-              className="min-w-0 rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-xs text-[#16171C]"
+              className="min-w-0 rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-meta text-[#16171C]"
             >
               <option value="all">Tất cả phân loại</option>
               {categories.map((category) => (
@@ -178,7 +177,7 @@ export default function ContributionHistory() {
                 setStatusFilter(event.target.value);
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-xs text-[#16171C]"
+              className="rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-meta text-[#16171C]"
             >
               {FILTER_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -187,10 +186,10 @@ export default function ContributionHistory() {
           </div>
         </div>
 
-        <div ref={listRef} className="relative flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
-          <table className="w-full min-w-[1000px] table-fixed border-collapse">
+        <div className="relative flex-1 min-h-0 overflow-auto">
+          <table className={`w-full min-w-[1000px] table-fixed border-collapse ${pageItems.length === itemsPerPage ? "h-full" : ""}`}>
             <thead>
-              <tr className="bg-[#F7F5EF] text-[11px] uppercase tracking-wider text-[#9A9CA3] border-b border-[#E5E2D8] font-bold">
+              <tr className="bg-[#F7F5EF] type-label text-[#9A9CA3] border-b border-[#E5E2D8]">
                 <th className="py-2.5 px-3 text-center w-[5%]">STT</th>
                 <th className="py-2.5 px-3 text-left w-[50%]">Nội dung</th>
                 <th className="py-2.5 px-3 text-left w-[17%]">Phân loại</th>
@@ -198,25 +197,25 @@ export default function ContributionHistory() {
                 <th className="py-2.5 px-3 text-left w-[14%]">Kết quả</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0EEE6] text-xs font-medium">
+            <tbody className="divide-y divide-[#F0EEE6] type-ui">
               {filteredData.length === 0 ? (
-                <tr><td colSpan={5} className="py-10 text-center text-[#9A9CA3] text-sm">Không có mục nào phù hợp bộ lọc.</td></tr>
+                <tr><td colSpan={5} className="py-10 text-center text-[#9A9CA3] text-body">Không có mục nào phù hợp bộ lọc.</td></tr>
               ) : pageItems.map((item, idx) => {
                 const votedCount = item.reviews.filter((r) => r.decision === "approve" || r.decision === "reject").length;
                 return (
-                  <tr key={item.id} onClick={() => setDetailItem(item)} className="hover:bg-[#F7F5EF]/70 transition-colors group h-14 cursor-pointer">
+                  <tr key={item.id} onClick={() => setDetailItem(item)} className="hover:bg-[#F7F5EF]/70 transition-colors group h-13 cursor-pointer">
                     <td className="px-3 text-center whitespace-nowrap align-middle">
-                      <span className="text-[#9A9CA3] font-medium font-mono text-xs">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
+                      <span className="text-[#9A9CA3] type-meta">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                     </td>
                     <td className="px-3 text-left align-middle">
-                      <p className="font-semibold text-[#16171C] truncate leading-5">{item.cs_transcript}</p>
-                      <p className="font-semibold text-[#16171C] truncate leading-5 mt-0.5">{item.vi_equivalent}</p>
+                      <p className="text-meta font-regular text-[#16171C] truncate leading-5">{item.cs_transcript}</p>
+                      <p className="text-meta font-regular text-[#16171C] truncate leading-5 mt-0.5">{item.vi_equivalent}</p>
                     </td>
                     <td className="px-3 text-left align-middle">
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap border" style={{ background: catStyle(item.category).bg, color: catStyle(item.category).text, borderColor: catStyle(item.category).border }}>{item.category}</span>
+                      <span className="w-[136px] h-6 inline-flex items-center justify-center rounded-md type-caption whitespace-nowrap border" style={{ background: catStyle(item.category).bg, color: catStyle(item.category).text, borderColor: catStyle(item.category).border }}>{item.category}</span>
                     </td>
                     <td className="px-3 text-left whitespace-nowrap align-middle">
-                      <span className="text-[#6E7078] font-mono text-[11px]">{item.date}</span>
+                      <span className="text-[#6E7078] type-meta">{item.date}</span>
                     </td>
                     <td className="px-3 text-left align-middle">
                       <ResultButton status={item.status} votedCount={votedCount} onClick={(e) => { e.stopPropagation(); setDetailItem(item); }} ariaLabel={`Xem kết quả kiểm duyệt, ${item.id}`} />
@@ -248,7 +247,7 @@ export default function ContributionHistory() {
                     <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${accent}1A` }}>
                       <ResultIcon className="w-[18px] h-[18px]" style={{ color: accent }} />
                     </div>
-                    <span className="text-[16px] font-bold text-[#16171C]">Kết quả kiểm duyệt</span>
+                    <span className="type-section text-[#16171C]">Kết quả kiểm duyệt</span>
                   </div>
                   <button onClick={() => setDetailItem(null)} aria-label="Đóng" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0EEE6] transition-colors flex-shrink-0">
                     <X className="w-[18px] h-[18px] text-[#6E7078]" />
@@ -256,8 +255,8 @@ export default function ContributionHistory() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold border" style={{ background: catStyle(detailItem.category).bg, color: catStyle(detailItem.category).text, borderColor: catStyle(detailItem.category).border }}>{detailItem.category}</span>
-                  <span className="text-[11px] text-[#9A9CA3] font-mono">{detailItem.date}</span>
+                  <span className="px-2.5 py-1 rounded-md text-caption font-label border" style={{ background: catStyle(detailItem.category).bg, color: catStyle(detailItem.category).text, borderColor: catStyle(detailItem.category).border }}>{detailItem.category}</span>
+                  <span className="type-meta text-[#9A9CA3]">{detailItem.date}</span>
                 </div>
 
                 <SentenceContent item={detailItem} />
@@ -272,18 +271,18 @@ export default function ContributionHistory() {
                     const rowBorder = isReject ? "#F3C9C9" : isApprove ? "rgba(63,166,107,0.2)" : "#F5DFC0";
                     return (
                       <div key={i} className="flex gap-2.5 px-3 py-2.5 rounded-xl border" style={{ background: rowBg, borderColor: rowBorder }}>
-                        <span className="w-6 h-6 rounded-full text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0" style={{ background: c }}>{r.reviewer}</span>
+                        <span className="w-6 h-6 rounded-full text-white text-caption font-label flex items-center justify-center flex-shrink-0" style={{ background: c }}>{r.reviewer}</span>
                         <div className="min-w-0">
-                          <p className="text-[12.5px] font-bold" style={{ color: isApprove ? "#1F5C3F" : c }}>
+                          <p className="text-meta font-label" style={{ color: isApprove ? "#1F5C3F" : c }}>
                             {isReject ? `Từ chối${r.errorCategory ? " · " + r.errorCategory : ""}` : isApprove ? "Đã duyệt" : "Chưa đánh giá"}
                           </p>
-                          {r.reason && <p className="text-[12px] text-[#6E7078] mt-0.5">{r.reason}</p>}
+                          {r.reason && <p className="text-meta text-[#6E7078] mt-0.5">{r.reason}</p>}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <button onClick={() => setDetailItem(null)} className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer" style={{ background: ACCENT }}>Đóng</button>
+                <button onClick={() => setDetailItem(null)} className="w-full mt-5 py-3 text-white rounded-xl text-body font-label transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer" style={{ background: ACCENT }}>Đóng</button>
               </div>
             </div>
           </div>

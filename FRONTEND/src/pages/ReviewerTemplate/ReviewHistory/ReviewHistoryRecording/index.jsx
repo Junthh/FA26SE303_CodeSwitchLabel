@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import Pagination from "../../../../components/Pagination/Pagination";
-import useFitPageSize from "../../../../hooks/useFitPageSize";
 import WaveformInline from "../../../../components/AudioPlayer/WaveformInline";
 import {
   CheckCircle2,
@@ -40,7 +39,7 @@ function votedCountOf(reviews) {
 }
 
 function InlineLabel({ variant }) {
-  return <span className="text-[9px] font-bold w-9 h-[18px] shrink-0 rounded-md inline-flex items-center justify-center text-white" style={{ background: variant === "cs" ? ACCENT : "#8B8D95" }}>{variant === "cs" ? "VI-EN" : "VI"}</span>;
+  return <span className="text-tag font-emphasis w-9 h-4 shrink-0 rounded inline-flex items-center justify-center text-white" style={{ background: variant === "cs" ? ACCENT : "#8B8D95" }}>{variant === "cs" ? "VI-EN" : "VI"}</span>;
 }
 
 function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
@@ -53,12 +52,12 @@ function StatCard({ icon: Icon, label, value, pct, accent, bg }) {
         <Icon className="w-4 h-4" style={{ color: accent }} />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold text-[#6E7078]">{label}</p>
-        <p className="text-[17px] font-bold text-[#16171C] font-mono leading-tight">
+        <p className="type-label text-[#6E7078]">{label}</p>
+        <p className="type-stat text-[#16171C]">
           {value}
           {pct !== undefined && (
             <span
-              className="text-[11px] font-semibold ml-1"
+              className="type-label ml-1"
               style={{ color: accent }}
             >
               {pct}%
@@ -76,12 +75,12 @@ const ME = "R1";
 // Quyết định của chính reviewer đang đăng nhập - cùng kiểu với trang Lịch sử duyệt đề xuất câu
 function MyDecision({ review }) {
   if (review?.decision === "approve") {
-    return <span className="w-[104px] inline-flex items-center justify-center gap-1.5 py-1 rounded-full text-[11px] font-bold bg-[#3FA66B]/10 text-[#1F5C3F] border border-[#3FA66B]/25 whitespace-nowrap"><CheckCircle2 className="w-3.5 h-3.5 text-[#3FA66B]" /> Đã duyệt</span>;
+    return <span className="w-[92px] h-6 inline-flex items-center justify-center gap-1 rounded-full type-caption bg-[#3FA66B]/10 text-[#1F5C3F] border border-[#3FA66B]/25 whitespace-nowrap"><CheckCircle2 className="w-3 h-3 text-[#3FA66B]" /> Đã duyệt</span>;
   }
   if (review?.decision === "reject") {
-    return <span className="w-[104px] inline-flex items-center justify-center gap-1.5 py-1 rounded-full text-[11px] font-bold bg-[#FDEAEA] text-[#C63B3B] border border-[#F3C9C9] whitespace-nowrap"><XCircle className="w-3.5 h-3.5 text-[#C63B3B]" /> Từ chối</span>;
+    return <span className="w-[92px] h-6 inline-flex items-center justify-center gap-1 rounded-full type-caption bg-[#FDEAEA] text-[#C63B3B] border border-[#F3C9C9] whitespace-nowrap"><XCircle className="w-3 h-3 text-[#C63B3B]" /> Từ chối</span>;
   }
-  return <span className="text-[11.5px] text-[#9A9CA3]">-</span>;
+  return <span className="text-caption text-[#9A9CA3]">-</span>;
 }
 
 // Kết quả chung (trạng thái + số phiếu đã bỏ) - gộp "Trạng thái" và "Phản hồi" cũ, bấm để xem chi tiết
@@ -96,10 +95,10 @@ function ResultButton({ status, votedCount, onClick, ariaLabel }) {
     <button
       onClick={onClick}
       aria-label={ariaLabel}
-      className="w-[136px] inline-flex items-center justify-center gap-1.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
+      className="w-[128px] h-6 inline-flex items-center justify-center gap-1 rounded-full border type-caption transition-colors cursor-pointer whitespace-nowrap hover:opacity-80"
       style={{ background: s.bg, borderColor: s.border, color: s.text }}
     >
-      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <Icon className="w-3 h-3 shrink-0" />
       <span>{s.label} · {votedCount}/3</span>
     </button>
   );
@@ -157,8 +156,8 @@ export default function ReviewHistoryRecording() {
         ),
     );
   }, [withStatus, statusFilter, taskFilter, searchTerm]);
-  // Số dòng mỗi trang tự tính theo chiều cao bảng -> trang vừa 1 màn hình, không cuộn
-  const [listRef, itemsPerPage] = useFitPageSize(10, [filteredData.length > 0], "tbody");
+  // Cố định 10 mục mỗi trang; trang đầy thì các dòng giãn đều hết khung (màn thấp thì bảng cuộn bên trong)
+  const itemsPerPage = 10;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const pageItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
@@ -213,7 +212,7 @@ export default function ReviewHistoryRecording() {
                   setCurrentPage(1);
                 }}
                 placeholder="Tìm nhiệm vụ, speaker, nội dung..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5E2D8] text-[13px] leading-4 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5E2D8] text-ui leading-4 focus:outline-none focus:border-blue-500"
               />
             </div>
             <select
@@ -223,7 +222,7 @@ export default function ReviewHistoryRecording() {
                 setTaskFilter(event.target.value);
                 setCurrentPage(1);
               }}
-              className="min-w-0 rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-xs text-[#16171C]"
+              className="min-w-0 rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-meta text-[#16171C]"
             >
               <option value="all">Tất cả nhiệm vụ</option>
               {tasks.map((task) => (
@@ -239,7 +238,7 @@ export default function ReviewHistoryRecording() {
                 setStatusFilter(event.target.value);
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-xs text-[#16171C]"
+              className="rounded-lg border border-[#E5E2D8] px-3 py-2 bg-white text-meta text-[#16171C]"
             >
               {FILTER_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -249,21 +248,21 @@ export default function ReviewHistoryRecording() {
             </select>
           </div>
         </div>
-        <div ref={listRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
+        <div className="relative flex-1 min-h-0 overflow-auto">
           <table
             aria-label="Lịch sử kiểm duyệt ghi âm"
-            className="w-full min-w-[1100px] table-fixed border-collapse text-left"
+            className={`w-full min-w-[1100px] table-fixed border-collapse text-left ${pageItems.length === itemsPerPage ? "h-full" : ""}`}
           >
             <colgroup>
               <col className="w-[4%]" />
               <col className="w-[14%]" />
-              <col className="w-[13%]" />
-              <col className="w-[28%]" />
-              <col className="w-[20%]" />
+              <col className="w-[18%]" />
+              <col className="w-[23%]" />
+              <col className="w-[17%]" />
               <col className="w-[9%]" />
-              <col className="w-[12%]" />
+              <col className="w-[15%]" />
             </colgroup>
-            <thead className="bg-[#F7F5EF] text-[11px] font-semibold uppercase text-[#9A9CA3] border-b border-[#E5E2D8]">
+            <thead className="bg-[#F7F5EF] type-label text-[#9A9CA3] border-b border-[#E5E2D8]">
               <tr>
                 {[
                   "STT",
@@ -277,7 +276,7 @@ export default function ReviewHistoryRecording() {
                   <th
                     key={heading}
                     scope="col"
-                    className={`px-3 py-2.5 font-semibold ${heading === "STT" ? "text-center" : ""}`}
+                    className={`px-3 py-2.5 font-label ${heading === "STT" ? "text-center" : ""}`}
                   >
                     {heading}
                   </th>
@@ -286,11 +285,11 @@ export default function ReviewHistoryRecording() {
             </thead>
             {/* tbody dùng text-xs font-medium làm cỡ chữ mặc định - khớp đúng bảng Lịch sử Câu đóng góp */}
             {pageItems.length === 0 ? (
-              <tbody className="text-xs font-medium">
+              <tbody className="type-ui">
                 <tr>
                   <td
                     colSpan={7}
-                    className="py-12 px-4 text-center text-sm text-[#6E7078]"
+                    className="py-12 px-4 text-center text-body text-[#6E7078]"
                   >
                     Không có bản ghi phù hợp bộ lọc.
                   </td>
@@ -303,34 +302,34 @@ export default function ReviewHistoryRecording() {
                 return (
                   <tbody
                     key={item.id}
-                    className="border-b border-[#F0EEE6] last:border-b-0 text-xs font-medium"
+                    className="border-b border-[#F0EEE6] last:border-b-0 text-meta font-label"
                   >
                     {["cs", "vi"].map((variant) => {
                       const transcript =
                         variant === "cs" ? item.csText : item.viText;
                       const cellSpacing =
-                        variant === "cs" ? "pt-[3px] pb-0" : "pt-0 pb-[3px]";
+                        variant === "cs" ? "pt-[2px] pb-0" : "pt-0 pb-[2px]";
                       return (
                         <tr key={variant}>
                           {variant === "cs" && (
                             <>
                               <td
                                 rowSpan={2}
-                                className="px-3 text-center text-xs font-mono text-[#9A9CA3] tabular-nums"
+                                className="px-3 text-center type-meta text-[#9A9CA3]"
                               >
                                 {startIndex + index + 1}
                               </td>
                               <td rowSpan={2} className="px-3">
-                                <p className="font-semibold text-[#16171C]">
+                                <p className="font-label text-[#16171C]">
                                   {item.speaker}
                                 </p>
-                                <p className="mt-0.5 text-[11px] leading-4 text-[#9A9CA3] font-mono">
+                                <p className="mt-0.5 type-meta text-[#9A9CA3]">
                                   {date} - {time}
                                 </p>
                               </td>
                               <td rowSpan={2} className="px-3">
-                                <span className="inline-block rounded-md border border-[#E5E2D8] bg-[#F0EEE6] px-2.5 py-1 text-[11px] font-semibold text-[#6E7078]">
-                                  {item.task}
+                                <span title={item.task} className="flex w-full h-6 items-center justify-center rounded-md border border-[#E5E2D8] bg-[#F0EEE6] px-2 type-caption text-[#6E7078]"><span className="truncate">
+                                  {item.task}</span>
                                 </span>
                               </td>
                             </>
@@ -344,7 +343,7 @@ export default function ReviewHistoryRecording() {
                                     (text, textIndex) => (
                                       <p
                                         key={textIndex}
-                                        className="font-semibold text-[#16171C] truncate leading-6"
+                                        className="font-regular text-[#16171C] truncate leading-[22px]"
                                       >
                                         {parseCodeSwitch(text).map(
                                           (segment, segmentIndex) => (
@@ -354,7 +353,6 @@ export default function ReviewHistoryRecording() {
                                                 segment.lang === "en"
                                                   ? {
                                                       color: AUDIO_PRIMARY,
-                                                      fontWeight: 700,
                                                     }
                                                   : undefined
                                               }
@@ -411,12 +409,7 @@ export default function ReviewHistoryRecording() {
             )}
           </table>
         </div>
-        <div className="shrink-0 border-t border-[#F0EEE6] px-4 sm:px-5 grid sm:grid-cols-[1fr_auto_1fr] items-center">
-          <p className="text-[11px] text-[#9A9CA3] pt-2 sm:pt-0">
-            Hiển thị {filteredData.length ? startIndex + 1 : 0}–
-            {Math.min(startIndex + itemsPerPage, filteredData.length)} /{" "}
-            {filteredData.length} bản ghi
-          </p>
+        <div className="shrink-0 border-t border-[#F0EEE6] px-4 sm:px-5">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -447,7 +440,7 @@ export default function ReviewHistoryRecording() {
             />
             <div className="p-6 overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[16px] font-bold text-[#16171C]">
+                <span className="type-section text-[#16171C]">
                   {sentenceItem.speaker}
                 </span>
                 <button
@@ -460,17 +453,17 @@ export default function ReviewHistoryRecording() {
               </div>
               <div className="bg-[#F7F5EF] p-3.5 rounded-xl border border-[#E5E2D8] mb-2.5 flex items-center gap-2.5">
                 <InlineLabel variant="cs" />
-                <p className="text-sm font-semibold text-[#16171C] leading-relaxed break-words min-w-0">
-                  {parseCodeSwitch(sentenceItem.csText).map((segment, i) => <span key={i} style={segment.lang === "en" ? { color: AUDIO_PRIMARY, fontWeight: 700 } : undefined}>{segment.text}</span>)}
+                <p className="type-body text-[#16171C] break-words min-w-0">
+                  {parseCodeSwitch(sentenceItem.csText).map((segment, i) => <span key={i} style={segment.lang === "en" ? { color: AUDIO_PRIMARY } : undefined}>{segment.text}</span>)}
                 </p>
               </div>
               <div className="bg-[#F7F5EF] p-3.5 rounded-xl border border-[#E5E2D8] flex items-center gap-2.5">
                 <InlineLabel variant="vi" />
-                <p className="text-sm font-semibold text-[#16171C] leading-relaxed break-words min-w-0">{sentenceItem.viText}</p>
+                <p className="type-body text-[#16171C] break-words min-w-0">{sentenceItem.viText}</p>
               </div>
               <button
                 onClick={() => setSentenceItem(null)}
-                className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer"
+                className="w-full mt-5 py-3 text-white rounded-xl text-body font-label transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer"
                 style={{ background: ACCENT }}
               >
                 Đóng
@@ -520,7 +513,7 @@ export default function ReviewHistoryRecording() {
                           style={{ color: accent }}
                         />
                       </div>
-                      <span className="text-[16px] font-bold text-[#16171C]">
+                      <span className="type-section text-[#16171C]">
                         Kết quả kiểm duyệt
                       </span>
                     </div>
@@ -533,17 +526,17 @@ export default function ReviewHistoryRecording() {
                     </button>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold border border-[#E5E2D8] bg-[#F0EEE6] text-[#6E7078]">{detailItem.task}</span>
-                    <span className="font-bold text-xs text-[#16171C]">{detailItem.speaker}</span>
-                    <span className="text-[11px] text-[#9A9CA3] font-mono">{detailItem.date}</span>
+                    <span className="px-2.5 py-1 rounded-md text-caption font-label border border-[#E5E2D8] bg-[#F0EEE6] text-[#6E7078]">{detailItem.task}</span>
+                    <span className="font-label text-meta text-[#16171C]">{detailItem.speaker}</span>
+                    <span className="type-meta text-[#9A9CA3]">{detailItem.date}</span>
                   </div>
                   <div className="bg-[#F7F5EF] p-3.5 rounded-xl border border-[#E5E2D8] mb-2.5 flex items-center gap-2.5">
                     <InlineLabel variant="cs" />
-                    <p className="text-sm font-semibold text-[#16171C] leading-relaxed break-words min-w-0">{stripTags(detailItem.csText)}</p>
+                    <p className="type-body text-[#16171C] break-words min-w-0">{stripTags(detailItem.csText)}</p>
                   </div>
                   <div className="bg-[#F7F5EF] p-3.5 rounded-xl border border-[#E5E2D8] mb-4 flex items-center gap-2.5">
                     <InlineLabel variant="vi" />
-                    <p className="text-sm font-semibold text-[#16171C] leading-relaxed break-words min-w-0">{detailItem.viText}</p>
+                    <p className="type-body text-[#16171C] break-words min-w-0">{detailItem.viText}</p>
                   </div>
                   <div className="flex flex-col gap-2">
                     {detailItem.reviews.filter((r) => r.decision !== "not_needed").map((r, i) => {
@@ -571,14 +564,14 @@ export default function ReviewHistoryRecording() {
                           style={{ background: rowBg, borderColor: rowBorder }}
                         >
                           <span
-                            className="w-6 h-6 rounded-full text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0"
+                            className="w-6 h-6 rounded-full text-white text-caption font-label flex items-center justify-center flex-shrink-0"
                             style={{ background: c }}
                           >
                             {r.reviewer}
                           </span>
                           <div className="min-w-0">
                             <p
-                              className="text-[12.5px] font-bold"
+                              className="text-meta font-label"
                               style={{ color: isApprove ? "#1F5C3F" : c }}
                             >
                               {r.reviewer === ME && <span className="mr-1">Bạn ·</span>}
@@ -589,7 +582,7 @@ export default function ReviewHistoryRecording() {
                                   : "Chưa đánh giá"}
                             </p>
                             {r.reason && (
-                              <p className="text-[12px] text-[#6E7078] mt-0.5">
+                              <p className="text-meta text-[#6E7078] mt-0.5">
                                 {r.reason}
                               </p>
                             )}
@@ -600,7 +593,7 @@ export default function ReviewHistoryRecording() {
                   </div>
                   <button
                     onClick={() => setDetailItem(null)}
-                    className="w-full mt-5 py-3 text-white rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]"
+                    className="w-full mt-5 py-3 text-white rounded-xl text-body font-label transition-all hover:opacity-90 active:scale-[0.98]"
                     style={{ background: ACCENT }}
                   >
                     Đóng

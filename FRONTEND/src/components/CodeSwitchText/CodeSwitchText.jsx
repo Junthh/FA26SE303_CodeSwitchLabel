@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 /**
  * Tách chuỗi dạng "[vi]Em nên [en]scan [vi]tài liệu..." thành mảng đoạn.
@@ -28,61 +28,21 @@ export function stripTags(transcript = '') {
 }
 
 /**
- * Hiển thị câu code-switch: đoạn tiếng Anh được tô màu chữ,
- * hover vào hiện nghĩa thuần Việt lấy từ mảng alignment.
+ * Hiển thị câu code-switch: đoạn tiếng Anh chỉ được tô màu chữ
+ * (không hiện nghĩa - câu tiếng Việt tương đương đã có ngay bên dưới).
  */
 export default function CodeSwitchText({
   transcript,
-  alignment = [],
   accent = '#FF4B2E',
   className = '',
 }) {
   const segments = useMemo(() => parseCodeSwitch(transcript), [transcript]);
 
-  // Tra nhanh: từ tiếng Anh -> bản dịch thuần Việt
-  const alignMap = useMemo(() => {
-    const map = new Map();
-    alignment.forEach((a) => {
-      if (a.source) map.set(a.source.toLowerCase().trim(), a.target);
-    });
-    return map;
-  }, [alignment]);
-
   return (
     <span className={className}>
-      {segments.map((seg, i) => {
-        if (seg.lang === 'vi') return <span key={i}>{seg.text}</span>;
-
-        // Đoạn tiếng Anh: tách phần chữ và khoảng trắng đuôi để không tô cả khoảng trắng
-        const trailing = seg.text.match(/\s*$/)[0];
-        const word = seg.text.slice(0, seg.text.length - trailing.length);
-        const viMeaning = alignMap.get(word.toLowerCase().trim());
-
-        return (
-          <React.Fragment key={i}>
-            <span
-              className="relative inline-block group cursor-help"
-              style={{
-                color: accent,
-                borderBottom: `2px dotted ${accent}80`,
-                paddingBottom: 1,
-              }}
-            >
-              {word}
-              {viMeaning && (
-                <span
-                  className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 whitespace-nowrap rounded-lg bg-[#16171C] px-2.5 py-1.5 text-[12px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                  style={{ fontFamily: 'inherit' }}
-                >
-                  {viMeaning}
-                  <span className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-[#16171C]" />
-                </span>
-              )}
-            </span>
-            {trailing}
-          </React.Fragment>
-        );
-      })}
+      {segments.map((seg, i) => (
+        <span key={i} style={seg.lang === 'en' ? { color: accent } : undefined}>{seg.text}</span>
+      ))}
     </span>
   );
 }
