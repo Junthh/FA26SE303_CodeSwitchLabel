@@ -1,12 +1,25 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import HomeTemplate from "../pages/HomeTemplate/index";
 import ReviewerTemplate from "../pages/ReviewerTemplate/index";
 import Loading from "../components/Loading/Loading";
+import TaskManagerTemplate from "../pages/TaskManagerTemplate/index";
+import AdminTemplate from "../pages/AdminTemplate/index";
+
+const HelpCenterLazy = lazy(() => import("../pages/HelpCenter/HelpCenter"));
 
 const routes = [
+  // LANDING PAGE & LOGIN ROUTE
   {
     path: "/",
+    element: lazy(() => import("../pages/LandingPage")),
+  },
+  {
+    path: "/login",
+    element: lazy(() => import("../pages/Login")),
+  },
+  {
+    path: "/speaker",
     element: HomeTemplate,
     nested: [
       {
@@ -46,6 +59,10 @@ const routes = [
       {
         path: "profile",
         element: lazy(() => import("../pages/HomeTemplate/Profile/index")),
+      },
+      {
+        path: "help-center",
+        element: HelpCenterLazy,
       },
     ],
   },
@@ -95,12 +112,103 @@ const routes = [
         path: "profile",
         element: lazy(() => import("../pages/ReviewerTemplate/Profile/index")),
       },
+      {
+        path: "help-center",
+        element: HelpCenterLazy,
+      },
     ],
   },
   // Bắt mọi URL không tồn tại - phải đặt cuối danh sách
   {
     path: "*",
     element: lazy(() => import("../pages/NotFound/index")),
+  },
+    // 3. TASK MANAGER ROLE
+  {
+    path: "/task-manager",
+    element: TaskManagerTemplate,
+    role: "Task Manager",
+    nested: [
+      {
+        path: "profile",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerProfile/index")),
+      },
+      {
+        path: "",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerHome/index")),
+      },
+      {
+        path: "dashboard",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerDashboard/index")),
+      },
+      {
+        path: "speaker-tasks",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerSpeakerTasks/index")),
+      },
+      {
+        path: "reviewer-tasks",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerReviewerTasks/index")),
+      },
+      {
+        path: "assign-tasks",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerAssignTasks/index")),
+      },
+      {
+        path: "management",
+        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerManagement/index")),
+      },
+      {
+        path: "help-center",
+        element: HelpCenterLazy,
+      },
+    ],
+  },
+
+  // 4. ADMIN ROLE (Đã thêm 2 route con mới cho Thiết lập tiêu chuẩn kiểm duyệt)
+  {
+    path: "/admin",
+    element: AdminTemplate,
+    role: "Administrator",
+    nested: [
+      {
+        path: "profile",
+        element: lazy(() => import("../pages/AdminTemplate/AdminProfile/index")),
+      },
+      {
+        path: "",
+        element: lazy(() => import("../pages/AdminTemplate/AdminDashboard/index")),
+      },
+      {
+        path: "dashboard",
+        element: lazy(() => import("../pages/AdminTemplate/AdminDashboard/index")),
+      },
+      {
+        path: "users",
+        element: lazy(() => import("../pages/AdminTemplate/AdminUserManagement/index")),
+      },
+      {
+        path: "text-data",
+        element: lazy(() => import("../pages/AdminTemplate/AdminTextData/index")),
+      },
+      {
+        path: "recordings",
+        element: lazy(() => import("../pages/AdminTemplate/AdminRecordings")),
+      },
+      // ROUTE MỚI: Quản lý Chủ đề tiêu chuẩn
+      {
+        path: "configuration/topic",
+        element: lazy(() => import("../pages/AdminTemplate/AdminTopicConfig/index")),
+      },
+      // ROUTE MỚI: Quản lý Câu đóng góp tiêu chuẩn
+      {
+        path: "configuration/text",
+        element: lazy(() => import("../pages/AdminTemplate/AdminTextConfig/index")),
+      },
+      {
+        path: "help-center",
+        element: HelpCenterLazy,
+      },
+    ],
   },
 ];
 

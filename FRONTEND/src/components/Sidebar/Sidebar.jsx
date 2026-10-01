@@ -199,11 +199,17 @@ export default function Sidebar({ role, isOpen, onClose }) {
 
       {/* Footer dùng chung cho mọi role */}
       <div className="space-y-1 pt-4 border-t border-white/10 text-left shrink-0">
-        <button
-          className={`flex items-center gap-3 px-3 py-2.5 w-full text-ui font-label rounded-lg transition-colors cursor-pointer ${idleCls}`}
+        <NavLink
+          to="help-center"
+          onClick={onClose}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 w-full text-[13px] font-semibold rounded-lg transition-colors cursor-pointer ${
+              isActive ? 'bg-white/10 text-white' : idleCls
+            }`
+          }
         >
           <HelpCircle className="w-4 h-4 shrink-0" /> Trung tâm hỗ trợ
-        </button>
+        </NavLink>
       </div>
     </aside>
   );
