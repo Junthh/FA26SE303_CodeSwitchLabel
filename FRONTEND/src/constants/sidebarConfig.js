@@ -1,6 +1,9 @@
 import {
   LayoutDashboard, CheckSquare, Headphones,
-  History, Home, PlusCircle, Mic, FileText, ClipboardCheck,
+  History, Home, PlusCircle, Mic, FileText, ClipboardCheck, FolderKanban, Users, Sliders,
+  UserCheck,
+  User,
+  ListTodo
 } from 'lucide-react';
 import {
   SIDEBAR_BG_SPEAKER,
@@ -12,6 +15,12 @@ import {
   REVIEWER_ACCENT,
   REVIEWER_ACCENT_ACTIVE_ICON,
   REVIEWER_ACCENT_SOFT_BG,
+  ADMIN_ACCENT,
+  ADMIN_ACCENT_ACTIVE_ICON,
+  ADMIN_ACCENT_SOFT_BG,
+  TASK_MANAGER_ACCENT,
+  TASK_MANAGER_ACCENT_ACTIVE_ICON,
+  TASK_MANAGER_ACCENT_SOFT_BG,
 } from './theme';
 
 export const SIDEBAR_CONFIG = {
@@ -77,6 +86,51 @@ export const SIDEBAR_CONFIG = {
         children: [
           { to: '/reviewer/history-recording', label: 'Ghi âm', icon: Headphones },
           { to: '/reviewer/history-contribution', label: 'Đề xuất câu', icon: FileText },
+        ],
+      },
+    ],
+    promo: null,
+  },
+  taskManager: {
+    background: "#1A1E28",
+    idleText: "#9EA6B8",
+    accent: TASK_MANAGER_ACCENT, // Màu xanh lá Emerald
+    accentIcon: TASK_MANAGER_ACCENT_ACTIVE_ICON,
+    accentSoftBg: TASK_MANAGER_ACCENT_SOFT_BG,
+    items: [
+      { name: "Trang chủ", to: "/task-manager", icon: Home, end: true },
+      { name: "Bảng điều khiển", to: "/task-manager/dashboard", icon: LayoutDashboard },
+      {
+        name: "Phân loại nhiệm vụ",
+        icon: FolderKanban,
+        children: [
+          { to: "/task-manager/speaker-tasks", label: "Speaker", icon: User },
+          { to: "/task-manager/reviewer-tasks", label: "Reviewer", icon: User },
+        ],
+      },
+      { name: "Phân công nhiệm vụ", to: "/task-manager/assign-tasks", icon: UserCheck },
+      { name: "Quản lý nhiệm vụ", to: "/task-manager/management", icon: ListTodo },
+    ],
+    promo: null,
+  },
+
+  admin: {
+    background: "#1A1E28",
+    idleText: "#9EA6B8",
+    accent: ADMIN_ACCENT, // Màu tím Indigo
+    accentIcon: ADMIN_ACCENT_ACTIVE_ICON,
+    accentSoftBg: ADMIN_ACCENT_SOFT_BG,
+    items: [
+      { name: "Bảng điều khiển", to: "/admin", icon: LayoutDashboard, end: true },
+      { name: "Quản lý người dùng", to: "/admin/users", icon: Users },
+      { name: "Quản lý dữ liệu văn bản", to: "/admin/text-data", icon: FileText },
+      { name: "Quản lý bản thu & bộ dữ liệu", to: "/admin/recordings", icon: Headphones },
+      {
+        name: "Thiết lập cấu hình",
+        icon: Sliders,
+        children: [
+          { to: "/admin/configuration/topic", label: "Chủ đề", icon: FolderKanban },
+          { to: "/admin/configuration/text", label: "Câu đóng góp", icon: FileText },
         ],
       },
     ],

@@ -51,7 +51,12 @@ export const SPEAKER_ACCENT_TEXT_ON = '#121212';   // chữ ĐẶT TRÊN nền a
 export const REVIEWER_ACCENT = '#0052CC';
 export const REVIEWER_ACCENT_ACTIVE_ICON = '#5B8DEF';
 export const REVIEWER_ACCENT_SOFT_BG = 'rgba(0,82,204,0.14)';
-
+export const ADMIN_ACCENT = "#0052CC"; 
+export const ADMIN_ACCENT_ACTIVE_ICON = "#5B8DEF";
+export const ADMIN_ACCENT_SOFT_BG = "rgba(0,82,204,0.14)";
+export const TASK_MANAGER_ACCENT = "#0052CC"; 
+export const TASK_MANAGER_ACCENT_ACTIVE_ICON = "#5B8DEF";
+export const TASK_MANAGER_ACCENT_SOFT_BG = "rgba(0,82,204,0.14)";
 // ═══════════════════════════════════════════════════
 // SIDEBAR
 // ═══════════════════════════════════════════════════

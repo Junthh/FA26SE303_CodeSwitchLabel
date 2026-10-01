@@ -19,7 +19,7 @@ export default function Pagination({ currentPage = 1, totalPages = 3, onPageChan
       <button
         onClick={() => onPageChange && onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-1.5 rounded-lg border border-[#E5E2D8] text-[#6E7078] hover:bg-[#F7F5EF] disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+        className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#25272E] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
         aria-label="Previous Page"
       >
         <ChevronLeft className="w-4 h-4" />
@@ -38,7 +38,7 @@ export default function Pagination({ currentPage = 1, totalPages = 3, onPageChan
             className={`w-8 h-8 rounded-lg text-meta font-label transition-all ${
               isActive
                 ? 'text-white'
-                : 'border border-[#E5E2D8] text-[#6E7078] hover:bg-[#F7F5EF] hover:text-[#16171C]'
+                : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#25272E] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white'
             }`}
           >
             {page}
@@ -49,7 +49,7 @@ export default function Pagination({ currentPage = 1, totalPages = 3, onPageChan
       <button
         onClick={() => onPageChange && onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-1.5 rounded-lg border border-[#E5E2D8] text-[#6E7078] hover:bg-[#F7F5EF] disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+        className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#25272E] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
         aria-label="Next Page"
       >
         <ChevronRight className="w-4 h-4" />
