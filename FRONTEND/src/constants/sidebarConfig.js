@@ -37,20 +37,20 @@ export const SIDEBAR_CONFIG = {
       {
         title: 'Đóng góp',
         items: [
-          { name: 'Trang chủ', to: '/', icon: Home, end: true },
+          { name: 'Trang chủ', to: '/speaker', icon: Home, end: true },
           // activeOn: vẫn sáng mục này khi đang ở các bước sau của luồng Duyệt -> Ghi âm -> Gửi
           {
-            name: 'Câu chờ ghi âm', to: '/review-text', icon: CheckSquare,
-            activeOn: ['/record-speech', '/submit-task'],
+            name: 'Câu chờ ghi âm', to: '/speaker/review-text', icon: CheckSquare,
+            activeOn: ['/speaker/record-speech', '/speaker/submit-task'],
           },
-          { name: 'Đóng góp văn bản', to: '/contribute', icon: PlusCircle },
+          { name: 'Đóng góp văn bản', to: '/speaker/contribute', icon: PlusCircle },
         ],
       },
       {
         title: 'Của bạn',
         items: [
-          { name: 'Lịch sử ghi âm', to: '/recording-history', icon: Headphones },
-          { name: 'Lịch sử đóng góp', to: '/contribution-history', icon: FileText },
+          { name: 'Lịch sử ghi âm', to: '/speaker/recording-history', icon: Headphones },
+          { name: 'Lịch sử đóng góp', to: '/speaker/contribution-history', icon: FileText },
         ],
       },
     ],
