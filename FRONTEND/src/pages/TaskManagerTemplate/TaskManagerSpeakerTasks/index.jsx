@@ -31,26 +31,26 @@ const getCatStyle = (cat) => CATEGORY_COLORS[cat] || {
 };
 
 const INITIAL_SPEAKER_TASKS = [
-  { id: "TSK-001", title: "Nhiệm vụ ghi âm thuật ngữ công nghệ", topic: "Công nghệ thông tin", target: 100, reviewed: 65, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-002", title: "Nhiệm vụ ghi âm hội thoại giáo dục phổ thông", topic: "Giáo dục", target: 80, reviewed: 80, status: "Hoàn thành", statusType: "completed" },
-  { id: "TSK-003", title: "Thu âm giao tiếp đời sống hàng ngày", topic: "Hội thoại hàng ngày", target: 150, reviewed: 135, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-004", title: "Đọc ngữ liệu lệnh thoại nhà thông minh", topic: "Công nghệ thông tin", target: 120, reviewed: 40, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-005", title: "Thu âm kịch bản hỏi đáp y tế cơ bản", topic: "Hội thoại hàng ngày", target: 90, reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
-  { id: "TSK-006", title: "Ghi âm bài giảng toán học trực tuyến", topic: "Giáo dục", target: 110, reviewed: 110, status: "Hoàn thành", statusType: "completed" },
-  { id: "TSK-007", title: "Đọc tin tức kinh tế và thị trường tài chính", topic: "Hội thoại hàng ngày", target: 70, reviewed: 20, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-008", title: "Thu âm dữ liệu hội thoại bán hàng tự động", topic: "Công nghệ thông tin", target: 130, reviewed: 130, status: "Hoàn thành", statusType: "completed" },
-  { id: "TSK-009", title: "Ghi âm phát âm bảng chữ cái Tiếng Việt cho trẻ em", topic: "Giáo dục", target: 60, reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
-  { id: "TSK-010", title: "Đọc tài liệu hướng dẫn lập trình Python", topic: "Công nghệ thông tin", target: 100, reviewed: 85, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-011", title: "Thu âm mẫu hội thoại đặt xe trực tuyến", topic: "Hội thoại hàng ngày", target: 85, reviewed: 85, status: "Hoàn thành", statusType: "completed" },
-  { id: "TSK-012", title: "Đọc thuật ngữ trí tuệ nhân tạo nâng cao", topic: "Công nghệ thông tin", target: 140, reviewed: 30, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-013", title: "Ghi âm bài luyện nói Tiếng Anh giao tiếp", topic: "Giáo dục", target: 95, reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
-  { id: "TSK-014", title: "Thu âm các đoạn hội thoại tư vấn tài chính", topic: "Hội thoại hàng ngày", target: 110, reviewed: 110, status: "Hoàn thành", statusType: "completed" },
-  { id: "TSK-015", title: "Đọc lệnh điều khiển thiết bị IoT trong nhà", topic: "Công nghệ thông tin", target: 75, reviewed: 50, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-016", title: "Ghi âm truyện đọc phát triển trí tuệ trẻ em", topic: "Giáo dục", target: 100, reviewed: 20, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-017", title: "Thu âm kịch bản hỏi đáp dịch vụ khách sạn", topic: "Hội thoại hàng ngày", target: 90, reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
-  { id: "TSK-018", title: "Đọc tài liệu về an ninh mạng và bảo mật", topic: "Công nghệ thông tin", target: 125, reviewed: 125, status: "Hoàn thành", statusType: "completed" },
-  { id: "TSK-019", title: "Ghi âm bài giảng môn Lịch Sử phổ thông", topic: "Giáo dục", target: 80, reviewed: 45, status: "Đang thực hiện", statusType: "in-progress" },
-  { id: "TSK-020", title: "Thu âm giao tiếp tại sân bay và ga tàu", topic: "Hội thoại hàng ngày", target: 105, reviewed: 105, status: "Hoàn thành", statusType: "completed" }
+  { id: "TSK-001", title: "Nhiệm vụ ghi âm thuật ngữ công nghệ", topic: "Công nghệ thông tin", reviewed: 65, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-002", title: "Nhiệm vụ ghi âm hội thoại giáo dục phổ thông", topic: "Giáo dục", reviewed: 80, status: "Hoàn thành", statusType: "completed" },
+  { id: "TSK-003", title: "Thu âm giao tiếp đời sống hàng ngày", topic: "Hội thoại hàng ngày", reviewed: 135, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-004", title: "Đọc ngữ liệu lệnh thoại nhà thông minh", topic: "Công nghệ thông tin", reviewed: 40, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-005", title: "Thu âm kịch bản hỏi đáp y tế cơ bản", topic: "Hội thoại hàng ngày", reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
+  { id: "TSK-006", title: "Ghi âm bài giảng toán học trực tuyến", topic: "Giáo dục", reviewed: 110, status: "Hoàn thành", statusType: "completed" },
+  { id: "TSK-007", title: "Đọc tin tức kinh tế và thị trường tài chính", topic: "Hội thoại hàng ngày", reviewed: 20, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-008", title: "Thu âm dữ liệu hội thoại bán hàng tự động", topic: "Công nghệ thông tin", reviewed: 130, status: "Hoàn thành", statusType: "completed" },
+  { id: "TSK-009", title: "Ghi âm phát âm bảng chữ cái Tiếng Việt cho trẻ em", topic: "Giáo dục", reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
+  { id: "TSK-010", title: "Đọc tài liệu hướng dẫn lập trình Python", topic: "Công nghệ thông tin", reviewed: 85, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-011", title: "Thu âm mẫu hội thoại đặt xe trực tuyến", topic: "Hội thoại hàng ngày", reviewed: 85, status: "Hoàn thành", statusType: "completed" },
+  { id: "TSK-012", title: "Đọc thuật ngữ trí tuệ nhân tạo nâng cao", topic: "Công nghệ thông tin", reviewed: 30, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-013", title: "Ghi âm bài luyện nói Tiếng Anh giao tiếp", topic: "Giáo dục", reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
+  { id: "TSK-014", title: "Thu âm các đoạn hội thoại tư vấn tài chính", topic: "Hội thoại hàng ngày", reviewed: 110, status: "Hoàn thành", statusType: "completed" },
+  { id: "TSK-015", title: "Đọc lệnh điều khiển thiết bị IoT trong nhà", topic: "Công nghệ thông tin", reviewed: 50, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-016", title: "Ghi âm truyện đọc phát triển trí tuệ trẻ em", topic: "Giáo dục", reviewed: 20, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-017", title: "Thu âm kịch bản hỏi đáp dịch vụ khách sạn", topic: "Hội thoại hàng ngày", reviewed: 0, status: "Chưa bắt đầu", statusType: "pending" },
+  { id: "TSK-018", title: "Đọc tài liệu về an ninh mạng và bảo mật", topic: "Công nghệ thông tin", reviewed: 125, status: "Hoàn thành", statusType: "completed" },
+  { id: "TSK-019", title: "Ghi âm bài giảng môn Lịch Sử phổ thông", topic: "Giáo dục", reviewed: 45, status: "Đang thực hiện", statusType: "in-progress" },
+  { id: "TSK-020", title: "Thu âm giao tiếp tại sân bay và ga tàu", topic: "Hội thoại hàng ngày", reviewed: 105, status: "Hoàn thành", statusType: "completed" }
 ];
 
 const TASK_STORAGE_KEY = "task_manager_dataset_v3";
@@ -84,8 +84,7 @@ export default function TaskManagerSpeakerTasks() {
 
   const [formData, setFormData] = useState({
     title: "",
-    topic: "Công nghệ thông tin",
-    target: 50
+    topic: "Công nghệ thông tin"
   });
 
   const pageSize = 10;
@@ -120,8 +119,7 @@ export default function TaskManagerSpeakerTasks() {
     setEditingTask(null);
     setFormData({
       title: "",
-      topic: "Công nghệ thông tin",
-      target: 50
+      topic: "Công nghệ thông tin"
     });
     setIsModalOpen(true);
   };
@@ -130,8 +128,7 @@ export default function TaskManagerSpeakerTasks() {
     setEditingTask(task);
     setFormData({
       title: task.title,
-      topic: task.topic,
-      target: task.target
+      topic: task.topic
     });
     setIsModalOpen(true);
   };
@@ -147,8 +144,7 @@ export default function TaskManagerSpeakerTasks() {
             ? {
                 ...t,
                 title: formData.title,
-                topic: formData.topic,
-                target: Number(formData.target)
+                topic: formData.topic
               }
             : t
         )
@@ -159,7 +155,6 @@ export default function TaskManagerSpeakerTasks() {
         id: `TSK-00${tasks.length + 1}`,
         title: formData.title,
         topic: formData.topic,
-        target: Number(formData.target),
         reviewed: 0,
         status: "Chưa bắt đầu",
         statusType: "pending",
@@ -287,8 +282,7 @@ export default function TaskManagerSpeakerTasks() {
             <div className="bg-gray-50 dark:bg-[#25272E] text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold flex items-center shrink-0 h-9">
               <div className="px-3 text-center whitespace-nowrap w-[60px]">STT</div>
               <div className="px-4 text-left flex-1">Nhiệm vụ</div>
-              <div className="px-3 text-left w-[180px] whitespace-nowrap">Chủ đề</div>
-              <div className="px-3 text-left w-[140px] whitespace-nowrap">Mục tiêu</div>
+              <div className="px-3 text-left w-[200px] whitespace-nowrap">Chủ đề</div>
               <div className="px-4 text-center w-[100px] whitespace-nowrap">Thao tác</div>
             </div>
 
@@ -315,7 +309,7 @@ export default function TaskManagerSpeakerTasks() {
                       </div>
 
                       {/* Chủ đề Badge */}
-                      <div className="px-3 w-[180px] whitespace-nowrap flex items-center">
+                      <div className="px-3 w-[200px] whitespace-nowrap flex items-center">
                         <span
                           className="px-2.5 py-1 rounded-md text-[11px] font-bold border inline-block whitespace-nowrap"
                           style={{
@@ -326,11 +320,6 @@ export default function TaskManagerSpeakerTasks() {
                         >
                           {task.topic}
                         </span>
-                      </div>
-
-                      {/* Mục tiêu */}
-                      <div className="px-3 w-[140px] whitespace-nowrap font-bold text-gray-900 dark:text-gray-100">
-                        {task.target} câu
                       </div>
 
                       {/* Thao tác */}
@@ -397,31 +386,17 @@ export default function TaskManagerSpeakerTasks() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Chủ đề (Topic)</label>
-                  <select
-                    value={formData.topic}
-                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#25272E] text-gray-900 dark:text-white rounded-lg outline-none font-bold transition-all font-sans truncate cursor-pointer focus:bg-white dark:focus:bg-[#1C1D22] focus:border-gray-400 dark:focus:border-gray-500"
-                  >
-                    <option value="Công nghệ thông tin" className="dark:bg-[#1C1D22]">Công nghệ thông tin</option>
-                    <option value="Giáo dục" className="dark:bg-[#1C1D22]">Giáo dục</option>
-                    <option value="Hội thoại hàng ngày" className="dark:bg-[#1C1D22]">Hội thoại hàng ngày</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Mục tiêu (Số câu)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={formData.target}
-                    onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#25272E] text-gray-900 dark:text-white rounded-lg outline-none font-bold transition-all font-sans truncate focus:bg-white dark:focus:bg-[#1C1D22] focus:border-gray-400 dark:focus:border-gray-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Chủ đề (Topic)</label>
+                <select
+                  value={formData.topic}
+                  onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                  className="w-full px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#25272E] text-gray-900 dark:text-white rounded-lg outline-none font-bold transition-all font-sans truncate cursor-pointer focus:bg-white dark:focus:bg-[#1C1D22] focus:border-gray-400 dark:focus:border-gray-500"
+                >
+                  <option value="Công nghệ thông tin" className="dark:bg-[#1C1D22]">Công nghệ thông tin</option>
+                  <option value="Giáo dục" className="dark:bg-[#1C1D22]">Giáo dục</option>
+                  <option value="Hội thoại hàng ngày" className="dark:bg-[#1C1D22]">Hội thoại hàng ngày</option>
+                </select>
               </div>
 
               <div className="flex gap-2 pt-1">

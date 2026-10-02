@@ -150,10 +150,6 @@ const routes = [
         element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerReviewerTasks/index")),
       },
       {
-        path: "assign-tasks",
-        element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerAssignTasks/index")),
-      },
-      {
         path: "management",
         element: lazy(() => import("../pages/TaskManagerTemplate/TaskManagerManagement/index")),
       },
