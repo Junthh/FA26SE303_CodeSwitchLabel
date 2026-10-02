@@ -77,18 +77,21 @@ export default function TaskManagerDashboard() {
     window.addEventListener("speaker_tasks_updated", handleDataChange);
     window.addEventListener("reviewer_tasks_updated", handleDataChange);
     window.addEventListener("task_manager_assign_updated", handleDataChange);
+    window.addEventListener("assign_tasks_updated", handleDataChange);
 
     return () => {
       window.removeEventListener("storage", handleDataChange);
       window.removeEventListener("speaker_tasks_updated", handleDataChange);
       window.removeEventListener("reviewer_tasks_updated", handleDataChange);
       window.removeEventListener("task_manager_assign_updated", handleDataChange);
+      window.removeEventListener("assign_tasks_updated", handleDataChange);
     };
   }, []);
 
   const speakerColor = SPEAKER_ACCENT || "#FF4B2E";
   const reviewerColor = REVIEWER_ACCENT || "#0052CC";
 
+  // Đếm chính xác số nhiệm vụ đã phân công cho Speaker và Reviewer
   const assignedSpeakerCount = assignments.filter(
     (a) => a.role === "Speaker" && Array.isArray(a.assignedUsers) && a.assignedUsers.length > 0
   ).length;

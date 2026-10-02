@@ -108,7 +108,6 @@ export const SIDEBAR_CONFIG = {
           { to: "/task-manager/reviewer-tasks", label: "Reviewer", icon: User },
         ],
       },
-      { name: "Phân công nhiệm vụ", to: "/task-manager/assign-tasks", icon: UserCheck },
       { name: "Quản lý nhiệm vụ", to: "/task-manager/management", icon: ListTodo },
     ],
     promo: null,
